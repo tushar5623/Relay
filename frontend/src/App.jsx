@@ -242,16 +242,16 @@ function App() {
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
             <p className="text-sm text-slate-500 mb-1">Budget</p>
-            <p className="text-3xl font-light text-white">${event.budget_total.toLocaleString()}</p>
+            <p className="text-3xl font-light text-white">₹{event.budget_total.toLocaleString()}</p>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
             <p className="text-sm text-slate-500 mb-1">Spent</p>
-            <p className="text-3xl font-light text-white">${event.budget_spent.toLocaleString()}</p>
+            <p className="text-3xl font-light text-white">₹{event.budget_spent.toLocaleString()}</p>
           </div>
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
             <p className="text-sm text-slate-500 mb-1">Remaining</p>
             <p className={`text-3xl font-light ${remainingBudget < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-              ${remainingBudget.toLocaleString()}
+              ₹{remainingBudget.toLocaleString()}
             </p>
           </div>
         </section>
@@ -309,7 +309,7 @@ function App() {
                               onChange={e => setVendorForm({...vendorForm, quote: e.target.value})}
                             />
                           ) : (
-                            `$${v.quote.toLocaleString()}`
+                            `₹${v.quote.toLocaleString()}`
                           )}
                         </td>
                         <td className="p-4 text-right">
@@ -394,16 +394,16 @@ function App() {
                   </div>
                   <div className="flex justify-between border-b border-slate-800/50 pb-2">
                     <span className="text-slate-500 text-sm">Total Budget</span>
-                    <span className="text-slate-300 text-sm font-mono">${event.budget_total.toLocaleString()}</span>
+                    <span className="text-slate-300 text-sm font-mono">₹{event.budget_total.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800/50 pb-2">
                     <span className="text-slate-500 text-sm">Spent</span>
-                    <span className="text-slate-300 text-sm font-mono">${event.budget_spent.toLocaleString()}</span>
+                    <span className="text-slate-300 text-sm font-mono">₹{event.budget_spent.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800/50 pb-2">
                     <span className="text-slate-500 text-sm">Remaining</span>
                     <span className={`text-sm font-mono ${remainingBudget < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                      ${remainingBudget.toLocaleString()}
+                      ₹{remainingBudget.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -490,7 +490,7 @@ function App() {
                         <div key={i} className={`p-4 rounded border shadow-lg ${opt.recommended ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-600 bg-slate-800/80'}`}>
                           <div className="flex justify-between items-start mb-2">
                             <h6 className="font-bold text-white text-base">{opt.title} {opt.recommended && <span className="text-[10px] bg-emerald-500 text-white px-2 py-0.5 rounded ml-2 uppercase shadow-sm">Recommended</span>}</h6>
-                            <span className="text-sm font-mono text-emerald-400 font-bold bg-slate-900 px-2 py-1 rounded">Est. Cost: ${opt.estimated_cost_change.toLocaleString()}</span>
+                            <span className="text-sm font-mono text-emerald-400 font-bold bg-slate-900 px-2 py-1 rounded">Est. Cost: ₹{opt.estimated_cost_change.toLocaleString()}</span>
                           </div>
                           <p className="text-base text-white font-medium my-3 leading-relaxed border-l-2 border-indigo-500 pl-3">{opt.description}</p>
                           <div className="grid grid-cols-2 gap-4 text-xs bg-slate-900/50 p-3 rounded mt-2 border border-slate-700/50">

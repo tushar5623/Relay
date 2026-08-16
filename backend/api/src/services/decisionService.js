@@ -68,7 +68,7 @@ async function createAndExecuteDecision(eventId, optionId, disruption, optionDat
                 { $set: { budget_spent: newBudgetSpent } }
             );
             
-            result = { message: `${vendorName} confirmed and budget recalculated to $${newBudgetSpent}` };
+            result = { message: `${vendorName} confirmed and budget recalculated to ₹${newBudgetSpent}` };
             
         } else if (optionId === 'reduce_guest_count') {
             // ACTION B — MODIFY GUEST COUNT
