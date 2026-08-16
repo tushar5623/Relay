@@ -7,6 +7,7 @@ function App() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   // Edit States
   const [editingBudget, setEditingBudget] = useState(false);
@@ -46,8 +47,9 @@ function App() {
   }, [data]);
 
   const handleResetDemo = async () => {
+    if (isResetting) return;
     try {
-      setLoading(true);
+      setIsResetting(true);
       await fetch(`http://localhost:3001/event/${EVENT_ID}/reset`, { method: 'POST' });
       setTraceEvents([]);
       setRecoveryPlan(null);
@@ -58,7 +60,8 @@ function App() {
       await loadData();
     } catch (err) {
       console.error(err);
-      setLoading(false);
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -226,9 +229,14 @@ function App() {
           </span>
           <button 
             onClick={handleResetDemo}
-            className="ml-4 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded transition-colors border border-slate-700"
+            disabled={isResetting}
+            className="ml-4 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded transition-colors border border-slate-700 disabled:opacity-50 flex-inline items-center"
           >
-            ↻ Reset Demo
+            {isResetting ? (
+              <><span className="inline-block w-3 h-3 border-2 border-slate-300 border-t-transparent rounded-full animate-spin mr-2 align-middle"></span> Resetting...</>
+            ) : (
+              '↻ Reset Demo'
+            )}
           </button>
         </div>
       </header>
