@@ -1,0 +1,93 @@
+const API_BASE_URL = 'http://localhost:3001';
+
+export async function getEvent(eventId) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}`);
+    if (!res.ok) {
+        throw new Error('Failed to fetch event data');
+    }
+    return res.json();
+}
+
+export async function updateEventBudget(eventId, budgetData) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/budget`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(budgetData)
+    });
+    if (!res.ok) {
+        throw new Error('Failed to update budget');
+    }
+    return res.json();
+}
+
+export async function updateVendor(eventId, vendorId, vendorData) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/vendor/${vendorId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(vendorData)
+    });
+    if (!res.ok) {
+        throw new Error('Failed to update vendor');
+    }
+    return res.json();
+}
+
+export async function cancelVendor(eventId, vendorId) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/vendor/${vendorId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) {
+        throw new Error('Failed to cancel vendor');
+    }
+    return res.json();
+}
+
+export async function generateRecoveryPlan(eventId, disruptionData) {
+    const res = await fetch(`http://localhost:8000/plan/${eventId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(disruptionData)
+    });
+    if (!res.ok) {
+        throw new Error('Failed to generate recovery plan');
+    }
+    return res.json();
+}
+
+export async function getDecisions(eventId) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/decisions`);
+    if (!res.ok) {
+        throw new Error('Failed to fetch decisions');
+    }
+    return res.json();
+}
+
+export async function executeDecision(eventId, optionId, disruptionData, optionData = null) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/decisions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            option_id: optionId,
+            disruption: disruptionData,
+            option_data: optionData
+        })
+    });
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to execute decision');
+    }
+    return res.json();
+}
+
+export async function incrementHeadcount(eventId, delta) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/headcount`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ delta })
+    });
+    if (!res.ok) {
+        throw new Error('Failed to increment headcount');
+    }
+    return res.json();
+}
