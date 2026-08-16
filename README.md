@@ -536,3 +536,50 @@ Re-plan
 ```
 
 The most important part is that Relay can handle a **new disruption while another recovery process is already in progress**.
+
+## Future Implementation
+
+The current version of Relay is a single-event prototype. It was built to prove the main idea: Relay can detect problems, create a recovery plan, get human approval, execute the plan, and re-plan when a new problem happens.
+
+If Relay continues after the hackathon, these would be the next steps.
+
+### Near-term — Make Relay useful for real organizers
+
+* Replace the mock vendor system with real communication through email and SMS providers such as SendGrid or Twilio.
+* Add user accounts and multi-event support so one user can manage multiple events.
+* Add a permanent decision history and downloadable audit report for each event.
+* Allow guests to update their RSVP themselves. Changes in guest count would automatically start the same impact-analysis and recovery process.
+
+### Mid-term — Make Relay smarter
+
+* Add vendor reliability scores based on past results, such as response time, quote accuracy, and whether the vendor completed the agreed work.
+* Support more types of problems, such as venue conflicts, date changes, and budget cuts.
+* Add different autonomy levels. For example:
+
+  * **Manual:** Always ask the user before taking action.
+  * **Assisted:** Suggest and prepare actions, but require approval.
+  * **Automatic:** Automatically approve low-risk actions below a set budget.
+
+This would allow users to slowly build trust in the agent.
+
+### Long-term — Product and Business
+
+* Build a B2B version for event agencies and venues managing many events at the same time.
+* Connect Relay with existing tools such as calendars, ticketing systems, and CRMs.
+* Expand Relay beyond weddings to conferences, corporate events, fundraisers, and other events with similar budget, vendor, and guest dependencies.
+
+### Core Idea
+
+The main architecture would stay the same:
+
+```text
+Deterministic Constraint Engine
+            +
+       AI Recovery Planner
+            +
+      Human Approval
+            +
+    Safe Execution Layer
+```
+
+The prototype shows that this approach can handle changing event conditions without starting the planning process from scratch. Future versions would mainly add more event types, more data, and more integrations around the same core system.
