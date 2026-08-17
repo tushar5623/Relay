@@ -108,7 +108,7 @@ OPENAI_API_KEY=your_actual_key
 
 The OpenAI key should only be used by the agent service.
 
-**Do not commit `.env` files to Git.**
+
 
 ---
 
