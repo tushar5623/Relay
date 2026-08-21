@@ -1,0 +1,1 @@
+const csv = require('csv-parse/sync'); const data = 'name,role,contact,cost,status\r\nTest Catering,catering,test@example.com,8500,confirmed\r\nTest DJ,music,dj@example.com,1200,confirmed'; console.log(csv.parse(data, {columns: true, skip_empty_lines: true, trim: true}));

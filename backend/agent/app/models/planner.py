@@ -11,6 +11,7 @@ class RecoveryOption(BaseModel):
     title: str
     description: str
     estimated_cost_change: float
+    estimated_time_impact: Optional[str] = None
     budget_remaining_after: float
     affected_constraints: List[str]
     pros: List[str]

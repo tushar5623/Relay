@@ -68,31 +68,65 @@ async def impact_analysis(event_id: str, request: ImpactAnalysisRequest):
     
     state, graph = build_state(raw_event, raw_vendors, raw_guests)
     
-    # Simple mapping for flexibility in demo queries
-    node_id = request.node
-    if "catering" in node_id and "status" in node_id:
+    disruption = request.disruption or {}
+    disruption_type = disruption.get("type", "")
+    
+    # Map disruption type to constraint graph node
+    node_id = "event_status"
+    if request.node:
+        node_id = request.node
+    elif disruption_type == "vendor_cancellation":
         node_id = "vendor_availability"
+    elif disruption_type == "budget_change":
+        node_id = "remaining_budget"
+    elif disruption_type == "headcount_change":
+        node_id = "guest_count"
+    elif disruption_type == "timeline_conflict":
+        node_id = "timeline_schedule"
         
     if node_id not in graph:
-        raise HTTPException(status_code=400, detail=f"Node {request.node} not found in constraint graph")
+        raise HTTPException(status_code=400, detail=f"Node {node_id} not found in constraint graph")
         
-    affected = analyze_impact(graph, node_id)
+    affected_nodes = analyze_impact(graph, node_id)
+    
+    affected_budget = []
+    affected_timeline = []
+    affected_vendors = []
+    affected_tasks = []
+    consequences = []
+    
+    for a_node_id in affected_nodes:
+        if a_node_id not in graph:
+            continue
+        node = graph[a_node_id]
+        if node.node_type == "financial":
+            affected_budget.append(a_node_id)
+        elif node.node_type == "time":
+            affected_timeline.append(a_node_id)
+        elif node.node_type == "operational":
+            affected_vendors.append(a_node_id)
+            affected_tasks.append(a_node_id)
+        consequences.append(f"Node {a_node_id} ({node.node_type}) is affected.")
     
     return ImpactAnalysisResult(
-        changed=request.node,
-        old_value=str(request.old_value),
-        new_value=str(request.new_value),
-        affected_nodes=affected
+        disruption_id=disruption.get("disruption_id", "unknown"),
+        affected_budget=affected_budget,
+        affected_timeline=affected_timeline,
+        affected_vendors=affected_vendors,
+        affected_tasks=affected_tasks,
+        affected_nodes=affected_nodes,
+        consequences=consequences
     )
 
 @app.post("/plan/{event_id}")
-async def generate_plan(event_id: str, disruption: dict, background_tasks: BackgroundTasks):
+async def generate_plan(event_id: str, disruption: dict):
     state = get_agent_state(event_id)
     if state.in_progress:
         return {"status": "already_running"}
         
     state.in_progress = True
-    background_tasks.add_task(run_negotiation, event_id, disruption)
+    import asyncio
+    asyncio.create_task(run_negotiation(event_id, disruption))
     return {"status": "started"}
 
 class RescopeRequest(BaseModel):

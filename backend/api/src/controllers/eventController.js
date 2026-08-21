@@ -1,5 +1,7 @@
 const eventService = require('../services/eventService');
 const { exec } = require('child_process');
+const csv = require('csv-parse/sync');
+const { getDb } = require('../db/connection');
 
 async function getEvent(req, res) {
     const { id } = req.params;
@@ -12,6 +14,18 @@ async function getEvent(req, res) {
     } catch (error) {
         console.error("Error in getEvent:", error);
         res.status(500).json({ error: error.message });
+    }
+}
+
+async function getEvents(req, res) {
+    try {
+        const db = getDb();
+        const accountId = req.user.account_id;
+        const events = await db.collection('events').find({ account_id: accountId }).project({ _id: 1, name: 1, date: 1, status: 1 }).toArray();
+        res.json(events);
+    } catch (error) {
+        console.error("Error in getEvents:", error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }
 
@@ -72,10 +86,35 @@ async function resetDemo(req, res) {
     }
 }
 
+async function importData(req, res) {
+    const { id } = req.params;
+    const { csv_data, domain } = req.body;
+    
+    if (!csv_data || !domain) {
+        return res.status(400).json({ error: 'csv_data and domain are required' });
+    }
+    
+    try {
+        const records = csv.parse(csv_data, {
+            columns: true,
+            skip_empty_lines: true,
+            trim: true
+        });
+        
+        const result = await eventService.importEventData(id, domain, records, req.user.account_id);
+        res.json({ message: `Successfully imported ${records.length} records for ${domain}`, result });
+    } catch (error) {
+        console.error("Error in importData:", error);
+        res.status(400).json({ error: 'Failed to process CSV data: ' + error.message });
+    }
+}
+
 module.exports = {
     getEvent,
+    getEvents,
     updateBudget,
     updateVendor,
     incrementHeadcount,
-    resetDemo
+    resetDemo,
+    importData
 };

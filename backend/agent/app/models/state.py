@@ -17,6 +17,7 @@ class EventState(BaseModel):
     budget_spent: float
     remaining_budget: float
     event_status: str
+    timeline: List[dict] = []
 
 class Constraint(BaseModel):
     type: str
@@ -46,12 +47,16 @@ class StateSnapshot(BaseModel):
     health: HealthStatus
 
 class ImpactAnalysisRequest(BaseModel):
-    node: str
-    old_value: str
-    new_value: str
+    disruption: Optional[dict] = None
+    node: Optional[str] = None
+    old_value: Optional[str] = None
+    new_value: Optional[str] = None
 
 class ImpactAnalysisResult(BaseModel):
-    changed: str
-    old_value: str
-    new_value: str
+    disruption_id: str
+    affected_budget: List[str]
+    affected_timeline: List[str]
+    affected_vendors: List[str]
+    affected_tasks: List[str]
     affected_nodes: List[str]
+    consequences: List[str]

@@ -59,10 +59,14 @@ async def test_rescope_flow_and_tradeoff():
         assert rescope_response.json()["status"] == "rescoped"
         
         # Wait for the negotiation to finish naturally
-        # Since it's a background task, we can just sleep for 6 seconds
-        await asyncio.sleep(6.0)
-        
-        # Verify negotiation is no longer active
+        # Since it's a background task calling OpenAI, it may take 10-15 seconds
         from app.services.negotiation_state import get_agent_state
         state = get_agent_state("evt_1")
+        
+        for _ in range(30):
+            if not state.in_progress:
+                break
+            await asyncio.sleep(1.0)
+            
+        # Verify negotiation is no longer active
         assert not state.in_progress

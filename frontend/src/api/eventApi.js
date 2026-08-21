@@ -1,8 +1,28 @@
 const API_BASE_URL = 'http://localhost:3001';
 
-export async function getEvent(eventId) {
-    const res = await fetch(`${API_BASE_URL}/event/${eventId}`);
+function getHeaders(baseHeaders = {}) {
+    const userId = localStorage.getItem('relay_active_user');
+    const headers = { ...baseHeaders };
+    if (userId) {
+        headers['X-User-Id'] = userId;
+    }
+    return headers;
+}
+
+export async function getEvents() {
+    const res = await fetch(`${API_BASE_URL}/event`, { headers: getHeaders() });
     if (!res.ok) {
+        throw new Error('Failed to fetch events');
+    }
+    return res.json();
+}
+
+export async function getEvent(eventId) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}`, {
+        headers: getHeaders()
+    });
+    if (!res.ok) {
+        if (res.status === 403) throw new Error('Forbidden: You do not have access to this event');
         throw new Error('Failed to fetch event data');
     }
     return res.json();
@@ -11,7 +31,7 @@ export async function getEvent(eventId) {
 export async function updateEventBudget(eventId, budgetData) {
     const res = await fetch(`${API_BASE_URL}/event/${eventId}/budget`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(budgetData)
     });
     if (!res.ok) {
@@ -20,10 +40,52 @@ export async function updateEventBudget(eventId, budgetData) {
     return res.json();
 }
 
+// --- Global Vendor APIs ---
+
+export async function getGlobalVendors(category, active) {
+    let url = `${API_BASE_URL}/global-vendors?`;
+    if (category) url += `category=${encodeURIComponent(category)}&`;
+    if (active !== undefined) url += `active=${active}`;
+    
+    const res = await fetch(url, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch global vendors');
+    return res.json();
+}
+
+export async function createGlobalVendor(data) {
+    const res = await fetch(`${API_BASE_URL}/global-vendors`, {
+        method: 'POST',
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to create global vendor');
+    return res.json();
+}
+
+export async function updateGlobalVendor(vendorId, data) {
+    const res = await fetch(`${API_BASE_URL}/global-vendors/${vendorId}`, {
+        method: 'PATCH',
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Failed to update global vendor');
+    return res.json();
+}
+
+export async function associateGlobalVendor(vendorId, eventId, quote) {
+    const res = await fetch(`${API_BASE_URL}/global-vendors/${vendorId}/associate`, {
+        method: 'POST',
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ event_id: eventId, quote })
+    });
+    if (!res.ok) throw new Error('Failed to associate global vendor');
+    return res.json();
+}
+
 export async function updateVendor(eventId, vendorId, vendorData) {
     const res = await fetch(`${API_BASE_URL}/event/${eventId}/vendor/${vendorId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(vendorData)
     });
     if (!res.ok) {
@@ -35,7 +97,7 @@ export async function updateVendor(eventId, vendorId, vendorData) {
 export async function cancelVendor(eventId, vendorId) {
     const res = await fetch(`${API_BASE_URL}/event/${eventId}/vendor/${vendorId}/cancel`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: getHeaders({ 'Content-Type': 'application/json' })
     });
     if (!res.ok) {
         throw new Error('Failed to cancel vendor');
@@ -56,7 +118,9 @@ export async function generateRecoveryPlan(eventId, disruptionData) {
 }
 
 export async function getDecisions(eventId) {
-    const res = await fetch(`${API_BASE_URL}/event/${eventId}/decisions`);
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/decisions`, {
+        headers: getHeaders()
+    });
     if (!res.ok) {
         throw new Error('Failed to fetch decisions');
     }
@@ -66,7 +130,7 @@ export async function getDecisions(eventId) {
 export async function executeDecision(eventId, optionId, disruptionData, optionData = null) {
     const res = await fetch(`${API_BASE_URL}/event/${eventId}/decisions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
             option_id: optionId,
             disruption: disruptionData,
@@ -83,11 +147,46 @@ export async function executeDecision(eventId, optionId, disruptionData, optionD
 export async function incrementHeadcount(eventId, delta) {
     const res = await fetch(`${API_BASE_URL}/event/${eventId}/headcount`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ delta })
     });
     if (!res.ok) {
         throw new Error('Failed to increment headcount');
+    }
+    return res.json();
+}
+
+export async function reportDisruption(eventId, disruptionData) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/disruptions`, {
+        method: 'POST',
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(disruptionData)
+    });
+    if (!res.ok) {
+        throw new Error('Failed to report disruption');
+    }
+    return res.json();
+}
+
+export async function getDisruptions(eventId) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/disruptions`, {
+        headers: getHeaders()
+    });
+    if (!res.ok) {
+        throw new Error('Failed to fetch disruptions');
+    }
+    return res.json();
+}
+
+export async function importData(eventId, data) {
+    const res = await fetch(`${API_BASE_URL}/event/${eventId}/import`, {
+        method: 'POST',
+        headers: getHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to import data');
     }
     return res.json();
 }

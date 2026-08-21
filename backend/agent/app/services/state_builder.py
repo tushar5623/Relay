@@ -16,7 +16,8 @@ def build_state(raw_event: dict, raw_vendors: list, raw_guests: list) -> Tuple[C
         budget_total=budget_total,
         budget_spent=budget_spent,
         remaining_budget=remaining_budget,
-        event_status=raw_event["status"]
+        event_status=raw_event["status"],
+        timeline=raw_event.get("timeline", [])
     )
     
     # 2. Build Vendor State
@@ -59,9 +60,13 @@ def build_state(raw_event: dict, raw_vendors: list, raw_guests: list) -> Tuple[C
     
     # 4. Build Constraint Graph
     graph: Dict[str, GraphNode] = {
+        "timeline_schedule": GraphNode(
+            node_id="timeline_schedule", node_type="time", current_value=f"{len(event_state.timeline)} blocks",
+            dependencies=[], dependents=["event_date"]
+        ),
         "event_date": GraphNode(
             node_id="event_date", node_type="time", current_value=str(event_state.event_date),
-            dependencies=[], dependents=["vendor_availability"]
+            dependencies=["timeline_schedule"], dependents=["vendor_availability"]
         ),
         "guest_count": GraphNode(
             node_id="guest_count", node_type="metric", current_value=str(guest_count),

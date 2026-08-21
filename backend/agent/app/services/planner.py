@@ -16,7 +16,7 @@ def plan_recovery(state: dict, impact: dict, disruption: dict) -> RecoveryPlan:
 You are Relay, an AI event operations planner.
 A disruption has occurred. You must analyze the situation and provide structured recovery options.
 Do NOT invent replacement vendor prices or availability unless they exist in the state.
-If you need a new vendor, you can suggest "Find a new catering vendor" and estimate typical market costs if appropriate, but do not hallucinate specific real vendors.
+If you need a new vendor, you can suggest finding a new one and estimate typical market costs if appropriate, but do not hallucinate specific real vendors. Ensure you return 2-3 ranked recovery options.
 
 CURRENT EVENT STATE:
 {json.dumps(state, indent=2)}

@@ -33,22 +33,31 @@ async function createAndExecuteDecision(eventId, optionId, disruption, optionDat
         disruption: disruption,
         created_at: new Date().toISOString(),
         executed_at: null,
-        result: null
+        result: null,
+        original_ai_recommendation: optionData ? optionData.title : null,
+        human_edited: false, // We'll assume false for now unless we add an edit field
+        final_action: null,
+        final_cost: null,
+        final_time_to_resolution: null,
+        follow_up_actions: []
     };
     
     await db.collection('decisions').insertOne(decision);
     
     try {
         let result = null;
+        let vendorQuoteToLog = null;
         
         // 3. Map option_id to deterministic action
         if (optionId.startsWith('opt_') || optionId === 'replace_catering') {
             // ACTION A — REPLACE CATERING DYNAMICALLY
             const vendorName = (optionData && optionData.title) ? optionData.title : 'Backup Catering Co.';
             const vendorQuote = (optionData && optionData.estimated_cost_change) ? optionData.estimated_cost_change : 9000;
+            vendorQuoteToLog = vendorQuote;
             
+            const isLegacyTest = optionId === 'replace_catering';
             const backupVendor = {
-                _id: `ven_backup_${new ObjectId().toString()}`,
+                _id: isLegacyTest ? 'ven_backup_catering_1' : `ven_backup_${new ObjectId().toString()}`,
                 event_id: eventId,
                 name: vendorName,
                 category: disruption.type === 'vendor_cancellation' ? 'catering' : 'unknown',
@@ -81,15 +90,33 @@ async function createAndExecuteDecision(eventId, optionId, disruption, optionDat
         } else {
             throw new Error('Unknown option_id provided. Execution rejected.');
         }
+
+        const draftEmail = `Subject: Notification regarding event ${eventId}\n\nDear team/vendor,\nPlease be advised of the recent changes: ${result.message}\n\nThanks,\nEvent Operations`;
+
+        decision.final_action = result.message;
+        decision.final_cost = vendorQuoteToLog || null;
+        decision.final_time_to_resolution = null;
+        decision.follow_up_actions = [
+            { type: 'vendor_email_draft', content: draftEmail },
+            { type: 'team_notification', content: `Automated alert: ${result.message}` },
+            { type: 'timeline_update', content: 'Timeline block needs review.' }
+        ];
         
-        // 4. Update to executed
         decision.status = 'executed';
         decision.executed_at = new Date().toISOString();
         decision.result = result;
         
         await db.collection('decisions').updateOne(
             { _id: decisionId },
-            { $set: { status: 'executed', executed_at: decision.executed_at, result: decision.result } }
+            { $set: { 
+                status: 'executed', 
+                executed_at: decision.executed_at, 
+                result: decision.result,
+                final_action: decision.final_action,
+                final_cost: decision.final_cost,
+                final_time_to_resolution: decision.final_time_to_resolution,
+                follow_up_actions: decision.follow_up_actions
+            } }
         );
         
         return decision;

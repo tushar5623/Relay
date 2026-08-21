@@ -12,5 +12,4 @@ def analyze_impact(graph: Dict[str, GraphNode], start_node_id: str) -> List[str]
             if current_id in graph:
                 queue.extend(graph[current_id].dependents)
                 
-    # Return list of affected nodes (in BFS discovery order roughly)
     return list(affected)
