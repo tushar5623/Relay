@@ -1,5 +1,6 @@
 const { getDb } = require('../db/connection');
 const { v4: uuidv4 } = require('uuid');
+const notificationService = require('./notificationService');
 
 async function getDisruptions(eventId) {
     const db = getDb();
@@ -34,6 +35,20 @@ async function createDisruption(eventId, data) {
     };
 
     await db.collection('disruptions').insertOne(disruption);
+    
+    // Feature 10: Create Notification for Action A
+    const event = await db.collection('events').findOne({ _id: eventId });
+    if (event) {
+        await notificationService.createNotification(
+            event.account_id,
+            eventId,
+            'disruption_reported',
+            'New Disruption',
+            `A ${data.type.replace('_', ' ')} has been reported for ${event.name}.`,
+            data.severity || 'high',
+            ['admin', 'approver']
+        );
+    }
     
     // Do not return _id in the response if possible, or just return the constructed object
     const { _id, ...safeDisruption } = disruption;

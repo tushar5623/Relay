@@ -40,10 +40,10 @@ def seed_database():
     print(f"Connected to database: {db.name}")
 
     # 1. Clear prototype collections
-    db.events.delete_many({"_id": "evt_1"})
-    db.vendors.delete_many({"event_id": "evt_1"})
-    db.guests.delete_many({"event_id": "evt_1"})
-    db.decisions.delete_many({"event_id": "evt_1"})
+    db.events.delete_many({"_id": {"$in": ["evt_1", "evt_2", "evt_3"]}})
+    db.vendors.delete_many({"event_id": {"$in": ["evt_1", "evt_2", "evt_3"]}})
+    db.guests.delete_many({"event_id": {"$in": ["evt_1", "evt_2", "evt_3"]}})
+    db.decisions.delete_many({"event_id": {"$in": ["evt_1", "evt_2", "evt_3"]}})
     
     # 2. Clear foundation collections
     db.accounts.delete_many({"_id": "acc_1"})
@@ -140,9 +140,45 @@ def seed_database():
             { "id": "t4", "time": "19:00", "block": "Dinner Reception", "dependencies": ["t3"] }
         ]
     }
-    db.events.insert_one(event)
 
-    # 4. Insert 6 confirmed vendors
+    event2 = {
+        "_id": "evt_2",
+        "account_id": "acc_1",
+        "team": ["usr_2", "usr_3"],
+        "name": "Corporate Summit",
+        "date": "2026-10-04",
+        "guest_count": 300,
+        "budget_total": 45000,
+        "budget_allocated": {
+            "venue": 20000,
+            "catering": 15000,
+            "av": 10000
+        },
+        "budget_spent": 46000,
+        "status": "at_risk",
+        "timeline": []
+    }
+
+    event3 = {
+        "_id": "evt_3",
+        "account_id": "acc_1",
+        "team": ["usr_1", "usr_2", "usr_3"],
+        "name": "Music Festival",
+        "date": "2027-05-20",
+        "guest_count": 1000,
+        "budget_total": 120000,
+        "budget_allocated": {
+            "venue": 50000,
+            "music/sound": 70000
+        },
+        "budget_spent": 50000,
+        "status": "on_track",
+        "timeline": []
+    }
+
+    db.events.insert_many([event, event2, event3])
+
+    # 4. Insert vendors
     vendors = [
         {
             "_id": "ven_catering_1",
@@ -197,11 +233,29 @@ def seed_database():
             "status": "confirmed",
             "quote": 600,
             "contact_log": []
+        },
+        {
+            "_id": "ven_av_2",
+            "event_id": "evt_2",
+            "category": "av",
+            "name": "TechAudio Corp",
+            "status": "cancelled",
+            "quote": 10000,
+            "contact_log": []
+        },
+        {
+            "_id": "ven_music_3",
+            "event_id": "evt_3",
+            "category": "music/sound",
+            "name": "MainStage Audio",
+            "status": "confirmed",
+            "quote": 70000,
+            "contact_log": []
         }
     ]
     db.vendors.insert_many(vendors)
 
-    # 5. Insert 150 guest records
+    # 5. Insert guests
     guests = []
     for i in range(1, 151):
         guests.append({
@@ -214,8 +268,8 @@ def seed_database():
     db.guests.insert_many(guests)
 
     print("Seed complete successfully.")
-    print(" - Inserted event: evt_1 (with account_id & team)")
-    print(" - Inserted vendors: 6")
+    print(" - Inserted events: 3")
+    print(" - Inserted vendors: 8")
     print(" - Inserted guests: 150")
     print(" - Inserted accounts: 1")
     print(" - Inserted users: 3")

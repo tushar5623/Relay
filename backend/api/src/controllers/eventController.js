@@ -21,7 +21,29 @@ async function getEvents(req, res) {
     try {
         const db = getDb();
         const accountId = req.user.account_id;
-        const events = await db.collection('events').find({ account_id: accountId }).project({ _id: 1, name: 1, date: 1, status: 1 }).toArray();
+        
+        let query = { account_id: accountId };
+        if (req.user.role !== 'admin') {
+            query.team = req.user._id;
+        }
+
+        const events = await db.collection('events').find(query).project({ _id: 1, name: 1, date: 1, status: 1, budget_total: 1, budget_spent: 1 }).toArray();
+        
+        // Enrich with unresolved disruptions and health indicator
+        for (const evt of events) {
+            const cancelledVendors = await db.collection('vendors').countDocuments({ event_id: evt._id, status: 'cancelled' });
+            evt.unresolved_disruptions = cancelledVendors;
+            
+            // Deterministic Health Calculation
+            if (evt.unresolved_disruptions > 1 || (evt.budget_spent > evt.budget_total * 1.1)) {
+                evt.health = 'critical';
+            } else if (evt.unresolved_disruptions === 1 || (evt.budget_spent > evt.budget_total)) {
+                evt.health = 'at_risk';
+            } else {
+                evt.health = 'on_track';
+            }
+        }
+
         res.json(events);
     } catch (error) {
         console.error("Error in getEvents:", error);
@@ -109,6 +131,44 @@ async function importData(req, res) {
     }
 }
 
+async function getClientStatus(req, res) {
+    const { id } = req.params;
+    try {
+        const db = getDb();
+        const event = await db.collection('events').findOne({ _id: id });
+        if (!event) {
+            return res.status(404).json({ error: 'Event not found' });
+        }
+
+        const vendors = await db.collection('vendors').find({ event_id: id }).toArray();
+        const disruptions = await db.collection('vendors').countDocuments({ event_id: id, status: 'cancelled' });
+        
+        let health = 'on_track';
+        if (disruptions > 1 || (event.budget_spent > event.budget_total * 1.1)) {
+            health = 'critical';
+        } else if (disruptions === 1 || (event.budget_spent > event.budget_total)) {
+            health = 'at_risk';
+        }
+
+        const confirmedVendors = vendors.filter(v => v.status === 'confirmed').length;
+
+        res.json({
+            name: event.name,
+            date: event.date,
+            guest_count: event.guest_count,
+            health: health,
+            vendors_total: vendors.length,
+            vendors_confirmed: confirmedVendors,
+            unresolved_disruptions: disruptions,
+            timeline_status: health === 'critical' ? 'Delayed' : (health === 'at_risk' ? 'Adjusting' : 'On Schedule'),
+            last_updated: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error("Error in getClientStatus:", error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+
 module.exports = {
     getEvent,
     getEvents,
@@ -116,5 +176,6 @@ module.exports = {
     updateVendor,
     incrementHeadcount,
     resetDemo,
-    importData
+    importData,
+    getClientStatus
 };

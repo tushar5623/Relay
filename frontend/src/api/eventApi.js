@@ -190,3 +190,28 @@ export async function importData(eventId, data) {
     }
     return res.json();
 }
+
+// --- Notification APIs ---
+export async function getNotifications() {
+    const res = await fetch(`${API_BASE_URL}/notifications`, { headers: getHeaders() });
+    if (!res.ok) throw new Error('Failed to fetch notifications');
+    return res.json();
+}
+
+export async function markNotificationAsRead(id) {
+    const res = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+        method: 'POST',
+        headers: getHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to mark notification as read');
+    return res.json();
+}
+
+export async function markAllNotificationsAsRead() {
+    const res = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+        method: 'POST',
+        headers: getHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to mark all notifications as read');
+    return res.json();
+}

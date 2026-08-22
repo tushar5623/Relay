@@ -1,5 +1,6 @@
 const { getDb } = require('../db/connection');
 const { ObjectId } = require('mongodb');
+const notificationService = require('./notificationService');
 
 async function getDecisions(eventId) {
     const db = getDb();
@@ -43,6 +44,20 @@ async function createAndExecuteDecision(eventId, optionId, disruption, optionDat
     };
     
     await db.collection('decisions').insertOne(decision);
+    
+    // Feature 10: Create Notification for Action B (Approval)
+    const event = await db.collection('events').findOne({ _id: eventId });
+    if (event) {
+        await notificationService.createNotification(
+            event.account_id,
+            eventId,
+            'recovery_approved',
+            'Recovery Approved',
+            `A recovery action has been approved for ${event.name}.`,
+            'info',
+            ['admin', 'approver', 'planner']
+        );
+    }
     
     try {
         let result = null;
@@ -108,16 +123,21 @@ async function createAndExecuteDecision(eventId, optionId, disruption, optionDat
         
         await db.collection('decisions').updateOne(
             { _id: decisionId },
-            { $set: { 
-                status: 'executed', 
-                executed_at: decision.executed_at, 
-                result: decision.result,
-                final_action: decision.final_action,
-                final_cost: decision.final_cost,
-                final_time_to_resolution: decision.final_time_to_resolution,
-                follow_up_actions: decision.follow_up_actions
-            } }
+            { $set: decision }
         );
+        
+        // Feature 10: Create Notification for Action C (Execution)
+        if (event) {
+            await notificationService.createNotification(
+                event.account_id,
+                eventId,
+                'recovery_executed',
+                'Recovery Executed',
+                `${decision.final_action}`,
+                'info',
+                ['admin', 'approver', 'planner']
+            );
+        }
         
         return decision;
         

@@ -3,6 +3,8 @@ const router = express.Router();
 const eventController = require('../controllers/eventController');
 const { requireAuth, requireEventAccess, requireRole } = require('../middleware/auth');
 
+router.get('/:id/client-status', eventController.getClientStatus);
+
 router.use(requireAuth);
 
 router.get('/', eventController.getEvents);

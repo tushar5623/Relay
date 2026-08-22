@@ -10,6 +10,7 @@ const vendorRoutes = require('./routes/vendorRoutes');
 const decisionRoutes = require('./routes/decisionRoutes');
 const disruptionRoutes = require('./routes/disruptionRoutes');
 const globalVendorRoutes = require('./routes/globalVendorRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 app.use(cors());
 app.use(express.json());
@@ -26,6 +27,7 @@ app.use('/event/:eventId/decisions', decisionRoutes);
 app.use('/event/:eventId/disruptions', disruptionRoutes);
 app.use('/event', eventRoutes);
 app.use('/global-vendors', globalVendorRoutes);
+app.use('/notifications', notificationRoutes);
 
 async function startServer() {
   await connectToDatabase();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getEvent, getEvents, updateEventBudget, updateVendor, cancelVendor, generateRecoveryPlan, getDecisions, executeDecision, incrementHeadcount, reportDisruption, getDisruptions, importData, getGlobalVendors, createGlobalVendor, updateGlobalVendor, associateGlobalVendor } from './api/eventApi';
+import { getEvent, getEvents, updateEventBudget, updateVendor, cancelVendor, generateRecoveryPlan, getDecisions, executeDecision, incrementHeadcount, reportDisruption, getDisruptions, importData, getGlobalVendors, createGlobalVendor, updateGlobalVendor, associateGlobalVendor, getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from './api/eventApi';
 
-const EVENT_ID = 'evt_1';
+
 
 const USERS = [
   { id: 'usr_1', name: 'Alice Planner', role: 'planner' },
@@ -40,10 +40,148 @@ const StatusIndicator = ({ status }) => {
   );
 };
 
+const ClientStatusView = ({ eventId }) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch(`http://localhost:3001/event/${eventId}/client-status`)
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load status');
+        return res.json();
+      })
+      .then(json => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [eventId]);
+
+  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">Loading Client Status...</div>;
+  if (error) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-red-500">{error}</div>;
+  if (!data) return null;
+
+  const getStatusColor = (health) => {
+    if (health === 'on_track') return 'text-green-600';
+    if (health === 'at_risk') return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getStatusIcon = (health) => {
+    if (health === 'on_track') return '🟢 ON TRACK';
+    if (health === 'at_risk') return '🟡 AT RISK';
+    return '🔴 CRITICAL';
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+      <header className="bg-white border-b border-slate-200 p-6 flex justify-between items-center shadow-sm">
+        <div>
+          <h2 className="text-xs font-semibold tracking-wider text-slate-400 uppercase mb-1">Relay / Client Event Status</h2>
+          <h1 className="text-3xl font-bold text-slate-800">{data.name}</h1>
+        </div>
+        <div className={`text-lg font-bold tracking-wider ${getStatusColor(data.health)}`}>
+          {getStatusIcon(data.health)}
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto mt-12 p-6 space-y-8">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
+          <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-6 border-b border-slate-100 pb-2">Key Event Information</h3>
+          <div className="grid grid-cols-2 gap-8 text-lg">
+            <div>
+              <p className="text-slate-500 text-sm font-medium mb-1">Date</p>
+              <p className="font-semibold text-slate-800">{new Date(data.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </div>
+            <div>
+              <p className="text-slate-500 text-sm font-medium mb-1">Guests</p>
+              <p className="font-semibold text-slate-800">{data.guest_count}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <p className="text-slate-500 text-sm font-medium mb-2">Vendor Status</p>
+            <p className="text-3xl font-bold text-slate-800">{data.vendors_confirmed} / {data.vendors_total}</p>
+            <p className="text-sm font-normal text-slate-500">Confirmed</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <p className="text-slate-500 text-sm font-medium mb-2">Disruption Status</p>
+            <p className="text-3xl font-bold text-slate-800">{data.unresolved_disruptions}</p>
+            <p className="text-sm font-normal text-slate-500">Unresolved</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <p className="text-slate-500 text-sm font-medium mb-2">Timeline Status</p>
+            <p className="text-3xl font-bold text-slate-800">{data.timeline_status}</p>
+          </div>
+        </div>
+
+        <div className="text-center text-sm text-slate-400 mt-12">
+          Last Updated: {new Date(data.last_updated).toLocaleString()}
+        </div>
+      </main>
+    </div>
+  );
+};
+
 function App() {
   const defaultUserId = localStorage.getItem('relay_active_user') || 'usr_1';
   const [currentUser, setCurrentUser] = useState(USERS.find(u => u.id === defaultUserId) || USERS[0]);
-  const [currentView, setCurrentView] = useState('event'); // 'event' or 'global_vendors'
+  const [currentView, setCurrentView] = useState('portfolio'); // 'portfolio', 'event', or 'global_vendors'
+  const [activeEventId, setActiveEventId] = useState(null);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const search = window.location.search;
+      if (path.startsWith('/event/')) {
+        const parts = path.split('/');
+        const id = parts[2];
+        setActiveEventId(id);
+        if (parts[3] === 'client-status') {
+          setCurrentView('client_status');
+        } else {
+          setCurrentView('event');
+        }
+      } else if (path === '/global_vendors') {
+        const params = new URLSearchParams(search);
+        const eventId = params.get('eventId');
+        setCurrentView('global_vendors');
+        setActiveEventId(eventId || null);
+      } else {
+        setCurrentView('portfolio');
+        setActiveEventId(null);
+      }
+    };
+    
+    handlePopState();
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (view, eventId = null) => {
+    setCurrentView(view);
+    setActiveEventId(eventId);
+    if (view === 'event') {
+      window.history.pushState({}, '', `/event/${eventId}`);
+    } else if (view === 'client_status') {
+      window.history.pushState({}, '', `/event/${eventId}/client-status`);
+    } else if (view === 'global_vendors') {
+      if (eventId) {
+        window.history.pushState({}, '', `/global_vendors?eventId=${eventId}`);
+      } else {
+        window.history.pushState({}, '', `/global_vendors`);
+      }
+    } else {
+      window.history.pushState({}, '', `/portfolio`);
+    }
+  };
+
   
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -107,6 +245,48 @@ function App() {
     }
   };
 
+  // Notifications State
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const loadNotifications = async () => {
+    try {
+      const res = await getNotifications();
+      setNotifications(res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+    const interval = setInterval(loadNotifications, 10000); // poll every 10s
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleNotificationClick = async (notif) => {
+    if (!notif.read) {
+      try {
+        await markNotificationAsRead(notif._id);
+        setNotifications(notifications.map(n => n._id === notif._id ? { ...n, read: true } : n));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setNotificationsOpen(false);
+    navigateTo('event', notif.event_id);
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (currentView === 'global_vendors') {
       loadGlobalVendors();
@@ -148,7 +328,7 @@ function App() {
     if (isResetting) return;
     try {
       setIsResetting(true);
-      await fetch(`http://localhost:3001/event/${EVENT_ID}/reset`, { method: 'POST' });
+      await fetch(`http://localhost:3001/event/${activeEventId}/reset`, { method: 'POST' });
       setTraceEvents([]);
       setRecoveryPlan(null);
       setDecisions([]);
@@ -164,13 +344,14 @@ function App() {
   };
 
   const loadData = async () => {
+    if (!activeEventId) return;
     try {
       setLoading(true);
       setError(null);
       
-      const result = await getEvent(EVENT_ID);
-      const decisionsResult = await getDecisions(EVENT_ID).catch(() => []);
-      const disruptionsResult = await getDisruptions(EVENT_ID).catch(() => []);
+      const result = await getEvent(activeEventId);
+      const decisionsResult = await getDecisions(activeEventId).catch(() => []);
+      const disruptionsResult = await getDisruptions(activeEventId).catch(() => []);
       setData(result);
       setDecisions(decisionsResult);
       setActiveDisruptions(disruptionsResult);
@@ -202,9 +383,10 @@ function App() {
   };
 
   useEffect(() => {
+    if (!activeEventId) return;
     loadData();
     
-    const ws = new WebSocket(`ws://localhost:8000/ws/${EVENT_ID}`);
+    const ws = new WebSocket(`ws://localhost:8000/ws/${activeEventId}`);
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
@@ -221,13 +403,13 @@ function App() {
       }
     };
     return () => ws.close();
-  }, []);
+  }, [activeEventId]);
 
   const handleBudgetSubmit = async (e) => {
     e.preventDefault();
     setBudgetError(null);
     try {
-      await updateEventBudget(EVENT_ID, {
+      await updateEventBudget(activeEventId, {
         budget_total: Number(budgetForm.budget_total),
         budget_spent: Number(budgetForm.budget_spent)
       });
@@ -242,7 +424,7 @@ function App() {
     e.preventDefault();
     setVendorError(null);
     try {
-      await updateVendor(EVENT_ID, vendorId, {
+      await updateVendor(activeEventId, vendorId, {
         status: vendorForm.status,
         quote: Number(vendorForm.quote)
       });
@@ -256,7 +438,7 @@ function App() {
   const handleSimulateDisruption = async () => {
     try {
       setLoading(true);
-      await cancelVendor(EVENT_ID, 'ven_catering_1');
+      await cancelVendor(activeEventId, 'ven_catering_1');
       await loadData();
     } catch (err) {
       setError("Unable to simulate disruption.");
@@ -270,7 +452,7 @@ function App() {
       setNegotiationActive(true);
       setTraceEvents([]);
       setRecoveryPlan(null);
-      await generateRecoveryPlan(EVENT_ID, {
+      await generateRecoveryPlan(activeEventId, {
         type: 'vendor_cancellation',
         vendor_id: 'ven_catering_1'
       });
@@ -284,7 +466,7 @@ function App() {
 
   const handleAddGuests = async () => {
     try {
-      await incrementHeadcount(EVENT_ID, 12);
+      await incrementHeadcount(activeEventId, 12);
       await loadData();
     } catch (err) {
       console.error("Failed to add guests:", err);
@@ -295,7 +477,7 @@ function App() {
     e.preventDefault();
     try {
       setGeneratingPlan(true); // Treat as generating plan right away to reflect UI state
-      const disruption = await reportDisruption(EVENT_ID, disruptionForm);
+      const disruption = await reportDisruption(activeEventId, disruptionForm);
       setShowDisruptionModal(false);
       setDisruptionForm({ type: 'vendor_cancellation', severity: 'high', description: '' });
       await loadData();
@@ -303,7 +485,7 @@ function App() {
       setNegotiationActive(true);
       setTraceEvents([]);
       setRecoveryPlan(null);
-      await generateRecoveryPlan(EVENT_ID, disruption);
+      await generateRecoveryPlan(activeEventId, disruption);
     } catch (err) {
       console.error(err);
       setGeneratingPlan(false);
@@ -314,7 +496,7 @@ function App() {
   const handleImportSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await importData(EVENT_ID, importForm);
+      const res = await importData(activeEventId, importForm);
       setImportResult(res.message);
       setImportForm({ domain: 'budget', csv_data: '' });
       await loadData();
@@ -327,7 +509,7 @@ function App() {
     try {
       setExecutingOptionId(opt.option_id);
       setExecutionMessage({ text: 'Executing recovery action...', type: 'loading' });
-      await executeDecision(EVENT_ID, opt.option_id, {
+      await executeDecision(activeEventId, opt.option_id, {
         type: 'vendor_cancellation',
         vendor_id: 'ven_catering_1'
       }, opt);
@@ -344,12 +526,39 @@ function App() {
     }
   };
 
-  if (loading && !data) return <div className="min-h-screen bg-slate-950 text-slate-300 p-8 flex items-center justify-center">Loading event...</div>;
-  if (error && currentView === 'event') return <div className="min-h-screen bg-slate-950 text-red-500 p-8 flex items-center justify-center">{error}</div>;
-  if (!data || !data.event) return null;
+  // Portfolio state
+  const [portfolioEvents, setPortfolioEvents] = useState([]);
+  const [portfolioSort, setPortfolioSort] = useState('date');
+  const [portfolioFilter, setPortfolioFilter] = useState('all');
 
-  const { event, vendors, guests } = data;
-  const remainingBudget = event.budget_total - event.budget_spent;
+  useEffect(() => {
+    if (currentView === 'portfolio') {
+      getEvents().then(setPortfolioEvents).catch(console.error);
+    }
+  }, [currentView, currentUser]);
+
+  const sortedPortfolio = [...portfolioEvents]
+    .filter(e => portfolioFilter === 'all' || e.health === portfolioFilter)
+    .sort((a, b) => {
+      if (portfolioSort === 'risk') {
+        const hMap = { critical: 3, at_risk: 2, on_track: 1 };
+        return (hMap[b.health] || 0) - (hMap[a.health] || 0);
+      }
+      if (portfolioSort === 'budget') return b.budget_total - a.budget_total;
+      if (portfolioSort === 'disruptions') return b.unresolved_disruptions - a.unresolved_disruptions;
+      if (portfolioSort === 'date') return new Date(a.date) - new Date(b.date);
+      return 0;
+    });
+
+  if (currentView === 'event' && loading && !data) return <div className="min-h-screen bg-slate-950 text-slate-300 p-8 flex items-center justify-center">Loading event...</div>;
+  if (currentView === 'event' && error) return <div className="min-h-screen bg-slate-950 text-red-500 p-8 flex items-center justify-center">{error}</div>;
+
+  if (currentView === 'client_status') {
+    return <ClientStatusView eventId={activeEventId} />;
+  }
+
+  const { event, vendors, guests } = data || { event: {}, vendors: [], guests: [] };
+  const remainingBudget = (event.budget_total || 0) - (event.budget_spent || 0);
 
   return (
     <div className="min-h-screen bg-ops-base text-ops-text font-sans">
@@ -357,27 +566,100 @@ function App() {
       <header className="border-b border-ops-border bg-ops-panel p-6 flex justify-between items-center">
         <div className="flex items-center space-x-6">
           <div>
-            <h2 className="text-[10px] font-medium tracking-widest text-ops-muted uppercase mb-1">Relay / Event Operations Terminal</h2>
-            <h1 className="text-2xl font-semibold text-ops-text">{event.name}</h1>
-            <p className="text-sm text-ops-muted font-mono">{new Date(event.date).toISOString().split('T')[0]}</p>
+            <h2 className="text-[10px] font-medium tracking-widest text-ops-muted uppercase mb-1">Relay / Operations Terminal</h2>
+            {currentView === 'event' && event ? (
+              <>
+                <h1 className="text-2xl font-semibold text-ops-text">{event.name}</h1>
+                <p className="text-sm text-ops-muted font-mono">{new Date(event.date).toISOString().split('T')[0]}</p>
+              </>
+            ) : (
+              <h1 className="text-2xl font-semibold text-ops-text">
+                {currentView === 'portfolio' ? 'Portfolio Dashboard' : 'Central Vendors'}
+              </h1>
+            )}
           </div>
           <div className="flex space-x-2 border-l border-ops-border pl-6">
             <button 
-              onClick={() => setCurrentView('event')}
-              className={`text-xs uppercase tracking-wider font-medium px-4 py-2 rounded-sm transition-colors ${currentView === 'event' ? 'bg-ops-border text-ops-text' : 'text-ops-muted hover:text-ops-text'}`}
+              onClick={() => navigateTo('portfolio')}
+              className={`text-xs uppercase tracking-wider font-medium px-4 py-2 rounded-sm transition-colors ${currentView === 'portfolio' ? 'bg-ops-border text-ops-text' : 'text-ops-muted hover:text-ops-text'}`}
             >
-              Event Dashboard
+              Portfolio
             </button>
+            {activeEventId && (
+              <button 
+                onClick={() => navigateTo('event', activeEventId)}
+                className={`text-xs uppercase tracking-wider font-medium px-4 py-2 rounded-sm transition-colors ${currentView === 'event' ? 'bg-ops-border text-ops-text' : 'text-ops-muted hover:text-ops-text'}`}
+              >
+                Event Dashboard
+              </button>
+            )}
             <button 
-              onClick={() => setCurrentView('global_vendors')}
+              onClick={() => navigateTo('global_vendors', activeEventId)}
               className={`text-xs uppercase tracking-wider font-medium px-4 py-2 rounded-sm transition-colors ${currentView === 'global_vendors' ? 'bg-ops-border text-ops-text' : 'text-ops-muted hover:text-ops-text'}`}
             >
               Central Vendors
             </button>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <StatusIndicator status={event.status} />
+        <div className="flex items-center space-x-4 relative">
+          
+          {/* Notification Bell */}
+          <div className="relative">
+            <button 
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="text-ops-muted hover:text-ops-text p-1 transition-colors relative"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-3 h-3 text-[8px] font-bold text-white bg-ops-red rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Dropdown */}
+            {notificationsOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-ops-panel border border-ops-border shadow-xl rounded-sm z-50 overflow-hidden">
+                <div className="flex justify-between items-center p-3 border-b border-ops-border bg-ops-base">
+                  <h3 className="text-[10px] font-semibold text-ops-text uppercase tracking-wider">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <button 
+                      onClick={handleMarkAllRead}
+                      className="text-[10px] text-ops-teal hover:text-ops-teal/80 uppercase tracking-wider"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-ops-muted">No notifications</div>
+                  ) : (
+                    notifications.map(notif => (
+                      <div 
+                        key={notif._id} 
+                        onClick={() => handleNotificationClick(notif)}
+                        className={`p-3 border-b border-ops-border/50 cursor-pointer transition-colors hover:bg-ops-base ${notif.read ? 'opacity-60' : 'bg-ops-base/50'}`}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${notif.severity === 'critical' || notif.severity === 'high' ? 'text-ops-red' : 'text-ops-teal'}`}>
+                            {notif.title}
+                          </span>
+                          {!notif.read && <span className="w-2 h-2 rounded-full bg-ops-red"></span>}
+                        </div>
+                        <p className="text-xs text-ops-text">{notif.message}</p>
+                        <span className="text-[9px] text-ops-muted mt-2 block">{new Date(notif.created_at).toLocaleTimeString()}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {currentView === 'event' && event && <StatusIndicator status={event.status} />}
           
           <select 
             value={currentUser.id} 
@@ -389,19 +671,30 @@ function App() {
             ))}
           </select>
 
-          <button 
-            onClick={() => setShowDisruptionModal(true)}
-            className="text-xs bg-ops-red text-ops-base hover:bg-ops-red/80 px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
-          >
-            Report Disruption
-          </button>
+          {currentView === 'event' && activeEventId && (
+            <>
+              <button 
+                onClick={() => setShowDisruptionModal(true)}
+                className="text-xs bg-ops-red text-ops-base hover:bg-ops-red/80 px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
+              >
+                Report Disruption
+              </button>
 
-          <button 
-            onClick={() => setShowImportModal(true)}
-            className="text-xs border border-ops-border bg-ops-base hover:bg-ops-panel text-ops-text px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
-          >
-            Import Data
-          </button>
+              <button 
+                onClick={() => window.open(`/event/${activeEventId}/client-status`, '_blank')}
+                className="text-xs border border-ops-border bg-ops-base hover:bg-ops-panel text-ops-text px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
+              >
+                Client Status
+              </button>
+
+              <button 
+                onClick={() => setShowImportModal(true)}
+                className="text-xs border border-ops-border bg-ops-base hover:bg-ops-panel text-ops-text px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
+              >
+                Import Data
+              </button>
+            </>
+          )}
 
           <button 
             onClick={handleResetDemo}
@@ -417,7 +710,69 @@ function App() {
         </div>
       </header>
 
-      {currentView === 'global_vendors' ? (
+      {currentView === 'portfolio' ? (
+        <main className="p-6 max-w-7xl mx-auto space-y-6">
+          <div className="flex justify-between items-center bg-ops-panel border border-ops-border rounded-sm p-4">
+            <div className="flex space-x-4">
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-ops-muted block mb-1">Sort By</label>
+                <select className="bg-ops-base border border-ops-border text-xs rounded-sm p-1.5 text-ops-text" value={portfolioSort} onChange={e => setPortfolioSort(e.target.value)}>
+                  <option value="date">Event Date</option>
+                  <option value="risk">Risk Exposure</option>
+                  <option value="budget">Value at Stake</option>
+                  <option value="disruptions">Unresolved Disruptions</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-ops-muted block mb-1">Health Filter</label>
+                <select className="bg-ops-base border border-ops-border text-xs rounded-sm p-1.5 text-ops-text" value={portfolioFilter} onChange={e => setPortfolioFilter(e.target.value)}>
+                  <option value="all">All Events</option>
+                  <option value="on_track">Healthy (On Track)</option>
+                  <option value="at_risk">At Risk</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedPortfolio.map(evt => (
+              <div 
+                key={evt._id} 
+                onClick={() => navigateTo('event', evt._id)}
+                className="bg-ops-panel border border-ops-border rounded-sm p-5 cursor-pointer hover:border-ops-muted transition-colors relative group"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-lg font-medium text-ops-text">{evt.name}</h3>
+                  <StatusIndicator status={evt.health || 'on_track'} />
+                </div>
+                
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between text-sm border-b border-ops-border/50 pb-1">
+                    <span className="text-ops-muted">Date</span>
+                    <span className="font-mono text-ops-text">{new Date(evt.date).toISOString().split('T')[0]}</span>
+                  </div>
+                  <div className="flex justify-between text-sm border-b border-ops-border/50 pb-1">
+                    <span className="text-ops-muted">Value at Stake</span>
+                    <span className="font-mono text-ops-text">₹{(evt.budget_total || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm border-b border-ops-border/50 pb-1">
+                    <span className="text-ops-muted">Unresolved Disruptions</span>
+                    <span className={`font-mono ${evt.unresolved_disruptions > 0 ? 'text-ops-red' : 'text-ops-text'}`}>{evt.unresolved_disruptions || 0}</span>
+                  </div>
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-ops-base">
+                  <div className={`h-full ${evt.health === 'critical' ? 'bg-ops-red' : evt.health === 'at_risk' ? 'bg-ops-amber' : 'bg-ops-teal'}`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {sortedPortfolio.length === 0 && (
+            <div className="p-8 text-center text-ops-muted text-sm border border-ops-border rounded-sm">No events found matching current criteria.</div>
+          )}
+        </main>
+      ) : currentView === 'global_vendors' ? (
         <main className="p-6 max-w-7xl mx-auto space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-medium text-ops-text uppercase tracking-wider">Central Vendor Database</h2>
