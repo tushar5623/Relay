@@ -83,15 +83,32 @@ export async function associateGlobalVendor(vendorId, eventId, quote) {
 }
 
 export async function updateVendor(eventId, vendorId, vendorData) {
-    const res = await fetch(`${API_BASE_URL}/event/${eventId}/vendor/${vendorId}`, {
-        method: 'PATCH',
-        headers: getHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(vendorData)
-    });
-    if (!res.ok) {
-        throw new Error('Failed to update vendor');
+    let lastResult = null;
+    if (vendorData.status !== undefined) {
+        const res = await fetch(`${API_BASE_URL}/event/${eventId}/vendor/${vendorId}/status`, {
+            method: 'PATCH',
+            headers: getHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ status: vendorData.status })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to update vendor status');
+        }
+        lastResult = await res.json();
     }
-    return res.json();
+    if (vendorData.quote !== undefined) {
+        const res = await fetch(`${API_BASE_URL}/event/${eventId}/vendor/${vendorId}/quote`, {
+            method: 'PATCH',
+            headers: getHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ quote: vendorData.quote })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to update vendor quote');
+        }
+        lastResult = await res.json();
+    }
+    return lastResult || { message: 'Vendor updated successfully' };
 }
 
 export async function cancelVendor(eventId, vendorId) {

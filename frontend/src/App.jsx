@@ -1,7 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getEvent, getEvents, updateEventBudget, updateVendor, cancelVendor, generateRecoveryPlan, getDecisions, executeDecision, incrementHeadcount, reportDisruption, getDisruptions, importData, getGlobalVendors, createGlobalVendor, updateGlobalVendor, associateGlobalVendor, getNotifications, markNotificationAsRead, markAllNotificationsAsRead } from './api/eventApi';
+import { 
+  getEvent, 
+  getEvents, 
+  updateEventBudget, 
+  updateVendor, 
+  cancelVendor, 
+  generateRecoveryPlan, 
+  getDecisions, 
+  executeDecision, 
+  incrementHeadcount, 
+  reportDisruption, 
+  getDisruptions, 
+  importData, 
+  getGlobalVendors, 
+  createGlobalVendor, 
+  updateGlobalVendor, 
+  associateGlobalVendor, 
+  getNotifications, 
+  markNotificationAsRead, 
+  markAllNotificationsAsRead 
+} from './api/eventApi';
 
-
+// Subcomponents
+import { Navbar } from './components/Navbar';
+import { HeroBand } from './components/HeroBand';
+import { PortfolioView } from './components/PortfolioView';
+import { EventOverview } from './components/EventOverview';
+import { VendorTable } from './components/VendorTable';
+import { AgentTelemetry } from './components/AgentTelemetry';
+import { GlobalVendorsView } from './components/GlobalVendorsView';
+import { ClientStatusView } from './components/ClientStatusView';
+import { 
+  ReportDisruptionModal, 
+  ImportDataModal, 
+  CreateGlobalVendorModal, 
+  AssignGlobalVendorModal 
+} from './components/Modals';
+import { Toast } from './components/Toast';
+import { LandingPage } from './components/LandingPage';
 
 const USERS = [
   { id: 'usr_1', name: 'Alice Planner', role: 'planner' },
@@ -9,132 +45,82 @@ const USERS = [
   { id: 'usr_3', name: 'Charlie Admin', role: 'admin' },
 ];
 
-const StatusIndicator = ({ status }) => {
-  let color = 'text-ops-muted';
-  let icon = '■';
-  switch(status) {
-    case 'on_track':
-    case 'resolved':
-    case 'confirmed':
-      color = 'text-ops-teal';
-      icon = '◆';
-      break;
-    case 'at_risk':
-    case 'pending':
-    case 'backup_candidate':
-      color = 'text-ops-amber';
-      icon = '■';
-      break;
-    case 'cancelled':
-    case 'rejected':
-    case 'failed':
-      color = 'text-ops-red';
-      icon = '■';
-      break;
-  }
-  return (
-    <span className={`inline-flex items-center space-x-1.5 ${color} uppercase tracking-wider text-[11px] font-medium`}>
-      <span className="text-[9px] leading-none">{icon}</span>
-      <span>{status.replace('_', ' ')}</span>
-    </span>
-  );
-};
+export function App() {
+  const defaultUserId = localStorage.getItem('relay_active_user') || 'usr_1';
+  const [currentUser, setCurrentUser] = useState(USERS.find(u => u.id === defaultUserId) || USERS[0]);
+  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'portfolio', 'event', 'global_vendors', 'client_status'
+  const [activeEventId, setActiveEventId] = useState(null);
 
-const ClientStatusView = ({ eventId }) => {
+  // Global toast state
+  const [toast, setToast] = useState(null);
+  const showToast = (message, type = 'info', title = '') => {
+    setToast({ message, type, title });
+    setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  };
+
+  // Event Data State
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
 
-  useEffect(() => {
-    fetch(`http://localhost:3001/event/${eventId}/client-status`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load status');
-        return res.json();
-      })
-      .then(json => {
-        setData(json);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [eventId]);
+  // Budget & Vendor Edit States
+  const [editingBudget, setEditingBudget] = useState(false);
+  const [budgetForm, setBudgetForm] = useState({ budget_total: 0, budget_spent: 0 });
+  const [budgetError, setBudgetError] = useState(null);
 
-  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-500">Loading Client Status...</div>;
-  if (error) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-red-500">{error}</div>;
-  if (!data) return null;
+  const [editingVendor, setEditingVendor] = useState(null);
+  const [vendorForm, setVendorForm] = useState({ status: '', quote: 0 });
+  const [vendorError, setVendorError] = useState(null);
 
-  const getStatusColor = (health) => {
-    if (health === 'on_track') return 'text-green-600';
-    if (health === 'at_risk') return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  // AI & Recovery Plan States
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+  const [recoveryPlan, setRecoveryPlan] = useState(null);
+  const [decisions, setDecisions] = useState([]);
+  const [executingOptionId, setExecutingOptionId] = useState(null);
+  const [executionMessage, setExecutionMessage] = useState(null);
+  const [traceEvents, setTraceEvents] = useState([]);
+  const [negotiationActive, setNegotiationActive] = useState(false);
+  const traceEndRef = useRef(null);
+  const prevGuestCountRef = useRef(null);
+  const [guestCountAnimating, setGuestCountAnimating] = useState(false);
 
-  const getStatusIcon = (health) => {
-    if (health === 'on_track') return '🟢 ON TRACK';
-    if (health === 'at_risk') return '🟡 AT RISK';
-    return '🔴 CRITICAL';
-  };
+  // Active Disruptions
+  const [activeDisruptions, setActiveDisruptions] = useState([]);
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      <header className="bg-white border-b border-slate-200 p-6 flex justify-between items-center shadow-sm">
-        <div>
-          <h2 className="text-xs font-semibold tracking-wider text-slate-400 uppercase mb-1">Relay / Client Event Status</h2>
-          <h1 className="text-3xl font-bold text-slate-800">{data.name}</h1>
-        </div>
-        <div className={`text-lg font-bold tracking-wider ${getStatusColor(data.health)}`}>
-          {getStatusIcon(data.health)}
-        </div>
-      </header>
+  // Modals
+  const [showDisruptionModal, setShowDisruptionModal] = useState(false);
+  const [disruptionForm, setDisruptionForm] = useState({ type: 'vendor_cancellation', severity: 'high', description: '' });
 
-      <main className="max-w-4xl mx-auto mt-12 p-6 space-y-8">
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-          <h3 className="text-sm font-semibold tracking-wider text-slate-400 uppercase mb-6 border-b border-slate-100 pb-2">Key Event Information</h3>
-          <div className="grid grid-cols-2 gap-8 text-lg">
-            <div>
-              <p className="text-slate-500 text-sm font-medium mb-1">Date</p>
-              <p className="font-semibold text-slate-800">{new Date(data.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            </div>
-            <div>
-              <p className="text-slate-500 text-sm font-medium mb-1">Guests</p>
-              <p className="font-semibold text-slate-800">{data.guest_count}</p>
-            </div>
-          </div>
-        </div>
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importForm, setImportForm] = useState({ domain: 'budget', csv_data: '' });
+  const [importResult, setImportResult] = useState(null);
 
-        <div className="grid grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-            <p className="text-slate-500 text-sm font-medium mb-2">Vendor Status</p>
-            <p className="text-3xl font-bold text-slate-800">{data.vendors_confirmed} / {data.vendors_total}</p>
-            <p className="text-sm font-normal text-slate-500">Confirmed</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-            <p className="text-slate-500 text-sm font-medium mb-2">Disruption Status</p>
-            <p className="text-3xl font-bold text-slate-800">{data.unresolved_disruptions}</p>
-            <p className="text-sm font-normal text-slate-500">Unresolved</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-            <p className="text-slate-500 text-sm font-medium mb-2">Timeline Status</p>
-            <p className="text-3xl font-bold text-slate-800">{data.timeline_status}</p>
-          </div>
-        </div>
+  // Global Vendors State
+  const [gVendors, setGVendors] = useState([]);
+  const [loadingGVendors, setLoadingGVendors] = useState(false);
+  const [gVendorFormOpen, setGVendorFormOpen] = useState(false);
+  const [gVendorForm, setGVendorForm] = useState({ name: '', category: 'catering', base_quote: 0 });
 
-        <div className="text-center text-sm text-slate-400 mt-12">
-          Last Updated: {new Date(data.last_updated).toLocaleString()}
-        </div>
-      </main>
-    </div>
-  );
-};
+  // Assignment Modal
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [vendorToAssign, setVendorToAssign] = useState(null);
+  const [accountEvents, setAccountEvents] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState('');
+  const [assignError, setAssignError] = useState(null);
 
-function App() {
-  const defaultUserId = localStorage.getItem('relay_active_user') || 'usr_1';
-  const [currentUser, setCurrentUser] = useState(USERS.find(u => u.id === defaultUserId) || USERS[0]);
-  const [currentView, setCurrentView] = useState('portfolio'); // 'portfolio', 'event', or 'global_vendors'
-  const [activeEventId, setActiveEventId] = useState(null);
+  // Notifications State
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
+  // Portfolio list State
+  const [portfolioEvents, setPortfolioEvents] = useState([]);
+  const [portfolioSort, setPortfolioSort] = useState('date');
+  const [portfolioFilter, setPortfolioFilter] = useState('all');
+
+  // URL routing sync
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
@@ -153,12 +139,15 @@ function App() {
         const eventId = params.get('eventId');
         setCurrentView('global_vendors');
         setActiveEventId(eventId || null);
-      } else {
+      } else if (path === '/portfolio') {
         setCurrentView('portfolio');
+        setActiveEventId(null);
+      } else {
+        setCurrentView('landing');
         setActiveEventId(null);
       }
     };
-    
+
     handlePopState();
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -177,79 +166,14 @@ function App() {
       } else {
         window.history.pushState({}, '', `/global_vendors`);
       }
-    } else {
+    } else if (view === 'portfolio') {
       window.history.pushState({}, '', `/portfolio`);
+    } else {
+      window.history.pushState({}, '', `/`);
     }
   };
 
-  
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isResetting, setIsResetting] = useState(false);
-
-  // Edit States
-  const [editingBudget, setEditingBudget] = useState(false);
-  const [budgetForm, setBudgetForm] = useState({ budget_total: 0, budget_spent: 0 });
-  const [budgetError, setBudgetError] = useState(null);
-
-  const [editingVendor, setEditingVendor] = useState(null);
-  const [vendorForm, setVendorForm] = useState({ status: '', quote: 0 });
-  const [vendorError, setVendorError] = useState(null);
-
-  // Recovery Plan States
-  const [generatingPlan, setGeneratingPlan] = useState(false);
-  const [recoveryPlan, setRecoveryPlan] = useState(null);
-  const [decisions, setDecisions] = useState([]);
-  const [executingOptionId, setExecutingOptionId] = useState(null);
-  const [executionMessage, setExecutionMessage] = useState(null);
-  const [traceEvents, setTraceEvents] = useState([]);
-  const [negotiationActive, setNegotiationActive] = useState(false);
-  const traceEndRef = useRef(null);
-  const prevGuestCountRef = useRef(null);
-  const [guestCountAnimating, setGuestCountAnimating] = useState(false);
-
-  // Modal States
-  const [showDisruptionModal, setShowDisruptionModal] = useState(false);
-  const [disruptionForm, setDisruptionForm] = useState({ type: 'vendor_cancellation', severity: 'high', description: '' });
-  
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importForm, setImportForm] = useState({ domain: 'budget', csv_data: '' });
-  const [importResult, setImportResult] = useState(null);
-
-  const [activeDisruptions, setActiveDisruptions] = useState([]);
-
-  // Global Vendors State
-  const [gVendors, setGVendors] = useState([]);
-  const [loadingGVendors, setLoadingGVendors] = useState(false);
-  const [gVendorSearch, setGVendorSearch] = useState('');
-  const [gVendorFormOpen, setGVendorFormOpen] = useState(false);
-  const [gVendorForm, setGVendorForm] = useState({ name: '', category: 'catering', base_quote: 0 });
-
-  // Assignment Modal State
-  const [assignModalOpen, setAssignModalOpen] = useState(false);
-  const [vendorToAssign, setVendorToAssign] = useState(null);
-  const [accountEvents, setAccountEvents] = useState([]);
-  const [selectedEventId, setSelectedEventId] = useState('');
-  const [assignError, setAssignError] = useState(null);
-
-  const loadGlobalVendors = async () => {
-    try {
-      setLoadingGVendors(true);
-      const res = await getGlobalVendors();
-      setGVendors(res);
-    } catch(err) {
-      console.error(err);
-    } finally {
-      setLoadingGVendors(false);
-    }
-  };
-
-  // Notifications State
-  const [notifications, setNotifications] = useState([]);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const unreadCount = notifications.filter(n => !n.read).length;
-
+  // Load notifications
   const loadNotifications = async () => {
     try {
       const res = await getNotifications();
@@ -261,7 +185,7 @@ function App() {
 
   useEffect(() => {
     loadNotifications();
-    const interval = setInterval(loadNotifications, 10000); // poll every 10s
+    const interval = setInterval(loadNotifications, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -275,15 +199,47 @@ function App() {
       }
     }
     setNotificationsOpen(false);
-    navigateTo('event', notif.event_id);
+    if (notif.event_id) {
+      navigateTo('event', notif.event_id);
+    }
   };
 
   const handleMarkAllRead = async () => {
     try {
       await markAllNotificationsAsRead();
       setNotifications(notifications.map(n => ({ ...n, read: true })));
+      showToast('All notifications marked as read', 'success');
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // Load portfolio events
+  const loadPortfolio = async () => {
+    try {
+      const evts = await getEvents();
+      setPortfolioEvents(evts);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (currentView === 'portfolio') {
+      loadPortfolio();
+    }
+  }, [currentView, currentUser]);
+
+  // Load global vendors
+  const loadGlobalVendors = async () => {
+    try {
+      setLoadingGVendors(true);
+      const res = await getGlobalVendors();
+      setGVendors(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingGVendors(false);
     }
   };
 
@@ -293,6 +249,291 @@ function App() {
     }
   }, [currentView, currentUser]);
 
+  // Load active event data
+  const loadData = async () => {
+    if (!activeEventId) return;
+    try {
+      setLoading(true);
+      setError(null);
+
+      const result = await getEvent(activeEventId);
+      const decisionsResult = await getDecisions(activeEventId).catch(() => []);
+      const disruptionsResult = await getDisruptions(activeEventId).catch(() => []);
+      
+      setData(result);
+      setDecisions(decisionsResult);
+      setActiveDisruptions(disruptionsResult);
+      if (result.event) {
+        setBudgetForm({
+          budget_total: result.event.budget_total || 0,
+          budget_spent: result.event.budget_spent || 0
+        });
+      }
+      setError(null);
+    } catch (err) {
+      setError(err.message || 'Unable to load event data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentView === 'event' && activeEventId) {
+      loadData();
+    }
+  }, [activeEventId, currentView, currentUser]);
+
+  // WebSocket for AI telemetry
+  useEffect(() => {
+    if (!activeEventId || currentView !== 'event') return;
+
+    let ws = null;
+    try {
+      ws = new WebSocket(`ws://localhost:8000/ws/${activeEventId}`);
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          msg.timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+          if (msg.type === 'agent.thought' || msg.type === 'agent.tool_call') {
+            setTraceEvents(prev => [...prev, msg]);
+          } else if (msg.type === 'agent.recommendation') {
+            setRecoveryPlan(msg.data);
+            setNegotiationActive(false);
+            setGeneratingPlan(false);
+            showToast('AI Recovery Plan generated and ready for review', 'success', 'Recommendation Matrix');
+          }
+        } catch (e) {
+          console.error('WS parse error', e);
+        }
+      };
+    } catch (err) {
+      console.error('WebSocket connection failed:', err);
+    }
+
+    return () => {
+      if (ws) ws.close();
+    };
+  }, [activeEventId, currentView]);
+
+  // Guest count animation detection
+  useEffect(() => {
+    if (data?.event) {
+      if (prevGuestCountRef.current !== null && prevGuestCountRef.current !== data.event.guest_count) {
+        setGuestCountAnimating(true);
+        setTimeout(() => setGuestCountAnimating(false), 2000);
+      }
+      prevGuestCountRef.current = data.event.guest_count;
+    }
+  }, [data]);
+
+  // User Switcher
+  const handleUserChange = (e) => {
+    const userId = e.target.value;
+    const user = USERS.find(u => u.id === userId);
+    setCurrentUser(user);
+    localStorage.setItem('relay_active_user', userId);
+    setTraceEvents([]);
+    setRecoveryPlan(null);
+    setDecisions([]);
+    setExecutingOptionId(null);
+    setExecutionMessage(null);
+    setNegotiationActive(false);
+    showToast(`Switched active profile to ${user.name} (${user.role})`, 'info');
+    setTimeout(loadData, 0);
+  };
+
+  // Reset Demo
+  const handleResetDemo = async () => {
+    if (isResetting) return;
+    try {
+      setIsResetting(true);
+      const targetId = activeEventId || 'evt_1';
+      await fetch(`http://localhost:3001/event/${targetId}/reset`, { 
+        method: 'POST',
+        headers: {
+          'X-User-Id': currentUser.id
+        }
+      });
+      setTraceEvents([]);
+      setRecoveryPlan(null);
+      setDecisions([]);
+      setExecutingOptionId(null);
+      setExecutionMessage(null);
+      setNegotiationActive(false);
+      showToast('Demo environment restored to baseline state', 'success');
+      await loadData();
+      if (currentView === 'portfolio') await loadPortfolio();
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to reset demo: ' + err.message, 'error');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  // Budget submit
+  const handleBudgetSubmit = async (e) => {
+    e.preventDefault();
+    setBudgetError(null);
+    try {
+      await updateEventBudget(activeEventId, {
+        budget_total: Number(budgetForm.budget_total),
+        budget_spent: Number(budgetForm.budget_spent)
+      });
+      setEditingBudget(false);
+      showToast('Event budget successfully updated', 'success');
+      loadData();
+    } catch (err) {
+      setBudgetError(err.message || 'Unable to update budget.');
+    }
+  };
+
+  // Vendor actions
+  const handleStartEditVendor = (v) => {
+    setEditingVendor(v._id);
+    setVendorForm({ status: v.status, quote: v.quote });
+    setVendorError(null);
+  };
+
+  const handleCancelEditVendor = () => {
+    setEditingVendor(null);
+    setVendorError(null);
+  };
+
+  const handleSaveVendor = async (e, vendorId) => {
+    e.preventDefault();
+    setVendorError(null);
+    try {
+      await updateVendor(activeEventId, vendorId, {
+        status: vendorForm.status,
+        quote: Number(vendorForm.quote)
+      });
+      setEditingVendor(null);
+      showToast('Vendor quote and status updated', 'success');
+      loadData();
+    } catch (err) {
+      setVendorError(err.message || 'Unable to update vendor.');
+    }
+  };
+
+  const handleCancelVendorDirect = async (vendorId) => {
+    try {
+      await cancelVendor(activeEventId, vendorId);
+      showToast(`Vendor ${vendorId} cancelled. Disruption triggered.`, 'warning');
+      loadData();
+    } catch (err) {
+      showToast('Failed to cancel vendor: ' + err.message, 'error');
+    }
+  };
+
+  // Simulate Disruption
+  const handleSimulateDisruption = async () => {
+    try {
+      setLoading(true);
+      await cancelVendor(activeEventId, 'ven_catering_1');
+      showToast('Simulated vendor cancellation for Saffron Table Catering', 'warning', 'Incident Injected');
+      await loadData();
+    } catch (err) {
+      showToast('Unable to simulate disruption: ' + err.message, 'error');
+      setLoading(false);
+    }
+  };
+
+  // Generate Recovery Plan
+  const handleGeneratePlan = async () => {
+    try {
+      setGeneratingPlan(true);
+      setNegotiationActive(true);
+      setTraceEvents([]);
+      setRecoveryPlan(null);
+      await generateRecoveryPlan(activeEventId, {
+        type: 'vendor_cancellation',
+        vendor_id: 'ven_catering_1'
+      });
+      showToast('Agent dispatch: Initiated constraint satisfaction solver', 'info');
+    } catch (err) {
+      console.error(err);
+      setGeneratingPlan(false);
+      setNegotiationActive(false);
+      showToast('Failed to generate recovery plan: ' + err.message, 'error');
+    }
+  };
+
+  // Add Guests (+12)
+  const handleAddGuests = async () => {
+    try {
+      await incrementHeadcount(activeEventId, 12);
+      showToast('Added +12 guests. Rescoping parameters in flight...', 'info');
+      await loadData();
+    } catch (err) {
+      showToast('Failed to add guests: ' + err.message, 'error');
+    }
+  };
+
+  // Report Disruption modal submit
+  const handleReportDisruptionSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setGeneratingPlan(true);
+      const disruption = await reportDisruption(activeEventId, disruptionForm);
+      setShowDisruptionModal(false);
+      setDisruptionForm({ type: 'vendor_cancellation', severity: 'high', description: '', vendor_id: '' });
+      showToast('Incident logged. Initiating autonomous recovery search...', 'warning');
+      await loadData();
+
+      setNegotiationActive(true);
+      setTraceEvents([]);
+      setRecoveryPlan(null);
+      await generateRecoveryPlan(activeEventId, disruption);
+    } catch (err) {
+      console.error(err);
+      setGeneratingPlan(false);
+      setNegotiationActive(false);
+      showToast('Failed to report disruption: ' + err.message, 'error');
+    }
+  };
+
+  // Import CSV modal submit
+  const handleImportSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await importData(activeEventId, importForm);
+      setImportResult(res.message || 'Data imported successfully.');
+      showToast('CSV payload imported successfully', 'success');
+      loadData();
+    } catch (err) {
+      setImportResult(err.message || 'Import failed.');
+      showToast('Import error: ' + err.message, 'error');
+    }
+  };
+
+  // Approve and Execute recovery option
+  const handleApproveAndExecute = async (opt) => {
+    try {
+      setExecutingOptionId(opt.option_id);
+      setExecutionMessage({ text: 'Executing recovery action and updating vendor ledger...', type: 'loading' });
+      await executeDecision(activeEventId, opt.option_id, {
+        type: 'vendor_cancellation',
+        vendor_id: 'ven_catering_1'
+      }, opt);
+      
+      setExecutionMessage({ text: '✓ Recovery plan committed and executed successfully', type: 'success' });
+      showToast(`Executed plan: ${opt.title}`, 'success', 'Contingency Resolved');
+      
+      setTimeout(() => {
+        setExecutionMessage(null);
+        setRecoveryPlan(null);
+        loadData();
+        setExecutingOptionId(null);
+      }, 1800);
+    } catch (err) {
+      setExecutionMessage({ text: `Execution failed: ${err.message}`, type: 'error' });
+      showToast(`Execution failed: ${err.message}`, 'error');
+      setExecutingOptionId(null);
+    }
+  };
+
+  // Global vendor modal open
   const handleOpenAssignModal = async (vendor) => {
     setVendorToAssign(vendor);
     setAssignError(null);
@@ -304,1095 +545,247 @@ function App() {
         setSelectedEventId(events[0]._id);
       }
     } catch (err) {
-      setAssignError("Failed to load events.");
+      setAssignError('Failed to load event list.');
     }
   };
 
-  useEffect(() => {
-    if (traceEndRef.current) {
-      traceEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [traceEvents, negotiationActive]);
-
-  useEffect(() => {
-    if (data && data.event) {
-      if (prevGuestCountRef.current !== null && prevGuestCountRef.current !== data.event.guest_count) {
-        setGuestCountAnimating(true);
-        setTimeout(() => setGuestCountAnimating(false), 2000);
-      }
-      prevGuestCountRef.current = data.event.guest_count;
-    }
-  }, [data]);
-
-  const handleResetDemo = async () => {
-    if (isResetting) return;
-    try {
-      setIsResetting(true);
-      await fetch(`http://localhost:3001/event/${activeEventId}/reset`, { method: 'POST' });
-      setTraceEvents([]);
-      setRecoveryPlan(null);
-      setDecisions([]);
-      setExecutingOptionId(null);
-      setExecutionMessage(null);
-      setNegotiationActive(false);
-      await loadData();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
-  const loadData = async () => {
-    if (!activeEventId) return;
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const result = await getEvent(activeEventId);
-      const decisionsResult = await getDecisions(activeEventId).catch(() => []);
-      const disruptionsResult = await getDisruptions(activeEventId).catch(() => []);
-      setData(result);
-      setDecisions(decisionsResult);
-      setActiveDisruptions(disruptionsResult);
-      setBudgetForm({
-        budget_total: result.event.budget_total,
-        budget_spent: result.event.budget_spent
-      });
-      setError(null);
-    } catch (err) {
-      setError(err.message || "Unable to load event data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUserChange = (e) => {
-    const userId = e.target.value;
-    const user = USERS.find(u => u.id === userId);
-    setCurrentUser(user);
-    localStorage.setItem('relay_active_user', userId);
-    // Reload data with new user context
-    setTraceEvents([]);
-    setRecoveryPlan(null);
-    setDecisions([]);
-    setExecutingOptionId(null);
-    setExecutionMessage(null);
-    setNegotiationActive(false);
-    setTimeout(loadData, 0); // Need to wait for localStorage to settle if we did state stuff, though it's sync.
-  };
-
-  useEffect(() => {
-    if (!activeEventId) return;
-    loadData();
-    
-    const ws = new WebSocket(`ws://localhost:8000/ws/${activeEventId}`);
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        msg.timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
-        if (msg.type === 'agent.thought' || msg.type === 'agent.tool_call') {
-          setTraceEvents(prev => [...prev, msg]);
-        } else if (msg.type === 'agent.recommendation') {
-          setRecoveryPlan(msg.data);
-          setNegotiationActive(false);
-          setGeneratingPlan(false);
-        }
-      } catch (e) {
-        console.error("WS parse error", e);
-      }
-    };
-    return () => ws.close();
-  }, [activeEventId]);
-
-  const handleBudgetSubmit = async (e) => {
+  const handleAssignSubmit = async (e) => {
     e.preventDefault();
-    setBudgetError(null);
+    setAssignError(null);
+    if (!selectedEventId) return setAssignError('Please select a target event.');
     try {
-      await updateEventBudget(activeEventId, {
-        budget_total: Number(budgetForm.budget_total),
-        budget_spent: Number(budgetForm.budget_spent)
-      });
-      setEditingBudget(false);
-      loadData();
+      await associateGlobalVendor(vendorToAssign._id, selectedEventId, vendorToAssign.base_quote);
+      showToast(`${vendorToAssign.name} assigned to event successfully`, 'success');
+      setAssignModalOpen(false);
+      setVendorToAssign(null);
+      loadGlobalVendors();
     } catch (err) {
-      setBudgetError("Unable to update budget.");
+      setAssignError(err.message || 'Assignment failed.');
     }
   };
 
-  const handleVendorSubmit = async (e, vendorId) => {
-    e.preventDefault();
-    setVendorError(null);
-    try {
-      await updateVendor(activeEventId, vendorId, {
-        status: vendorForm.status,
-        quote: Number(vendorForm.quote)
-      });
-      setEditingVendor(null);
-      loadData();
-    } catch (err) {
-      setVendorError("Unable to update vendor.");
-    }
-  };
-
-  const handleSimulateDisruption = async () => {
-    try {
-      setLoading(true);
-      await cancelVendor(activeEventId, 'ven_catering_1');
-      await loadData();
-    } catch (err) {
-      setError("Unable to simulate disruption.");
-      setLoading(false);
-    }
-  };
-
-  const handleGeneratePlan = async () => {
-    try {
-      setGeneratingPlan(true);
-      setNegotiationActive(true);
-      setTraceEvents([]);
-      setRecoveryPlan(null);
-      await generateRecoveryPlan(activeEventId, {
-        type: 'vendor_cancellation',
-        vendor_id: 'ven_catering_1'
-      });
-      // State reset happens in WS handler
-    } catch (err) {
-      console.error(err);
-      setGeneratingPlan(false);
-      setNegotiationActive(false);
-    }
-  };
-
-  const handleAddGuests = async () => {
-    try {
-      await incrementHeadcount(activeEventId, 12);
-      await loadData();
-    } catch (err) {
-      console.error("Failed to add guests:", err);
-    }
-  };
-
-  const handleReportDisruptionSubmit = async (e) => {
+  const handleCreateGlobalVendorSubmit = async (e) => {
     e.preventDefault();
     try {
-      setGeneratingPlan(true); // Treat as generating plan right away to reflect UI state
-      const disruption = await reportDisruption(activeEventId, disruptionForm);
-      setShowDisruptionModal(false);
-      setDisruptionForm({ type: 'vendor_cancellation', severity: 'high', description: '' });
-      await loadData();
-      
-      setNegotiationActive(true);
-      setTraceEvents([]);
-      setRecoveryPlan(null);
-      await generateRecoveryPlan(activeEventId, disruption);
+      await createGlobalVendor(gVendorForm);
+      setGVendorFormOpen(false);
+      setGVendorForm({ name: '', category: 'catering', base_quote: 0 });
+      showToast('Created new global vendor', 'success');
+      loadGlobalVendors();
     } catch (err) {
-      console.error(err);
-      setGeneratingPlan(false);
-      setNegotiationActive(false);
+      alert(err.message);
     }
   };
 
-  const handleImportSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await importData(activeEventId, importForm);
-      setImportResult(res.message);
-      setImportForm({ domain: 'budget', csv_data: '' });
-      await loadData();
-    } catch (err) {
-      setImportResult(err.message);
-    }
-  };
-
-  const handleApproveAndExecute = async (opt) => {
-    try {
-      setExecutingOptionId(opt.option_id);
-      setExecutionMessage({ text: 'Executing recovery action...', type: 'loading' });
-      await executeDecision(activeEventId, opt.option_id, {
-        type: 'vendor_cancellation',
-        vendor_id: 'ven_catering_1'
-      }, opt);
-      setExecutionMessage({ text: '✓ Recovery action executed', type: 'success' });
-      setTimeout(() => {
-        setExecutionMessage(null);
-        setRecoveryPlan(null);
-        loadData();
-        setExecutingOptionId(null);
-      }, 1500);
-    } catch (err) {
-      setExecutionMessage({ text: `Recovery action failed: ${err.message}`, type: 'error' });
-      setExecutingOptionId(null);
-    }
-  };
-
-  // Portfolio state
-  const [portfolioEvents, setPortfolioEvents] = useState([]);
-  const [portfolioSort, setPortfolioSort] = useState('date');
-  const [portfolioFilter, setPortfolioFilter] = useState('all');
-
-  useEffect(() => {
-    if (currentView === 'portfolio') {
-      getEvents().then(setPortfolioEvents).catch(console.error);
-    }
-  }, [currentView, currentUser]);
-
-  const sortedPortfolio = [...portfolioEvents]
-    .filter(e => portfolioFilter === 'all' || e.health === portfolioFilter)
-    .sort((a, b) => {
-      if (portfolioSort === 'risk') {
-        const hMap = { critical: 3, at_risk: 2, on_track: 1 };
-        return (hMap[b.health] || 0) - (hMap[a.health] || 0);
-      }
-      if (portfolioSort === 'budget') return b.budget_total - a.budget_total;
-      if (portfolioSort === 'disruptions') return b.unresolved_disruptions - a.unresolved_disruptions;
-      if (portfolioSort === 'date') return new Date(a.date) - new Date(b.date);
-      return 0;
-    });
-
-  if (currentView === 'event' && loading && !data) return <div className="min-h-screen bg-slate-950 text-slate-300 p-8 flex items-center justify-center">Loading event...</div>;
-  if (currentView === 'event' && error) return <div className="min-h-screen bg-slate-950 text-red-500 p-8 flex items-center justify-center">{error}</div>;
-
-  if (currentView === 'client_status') {
-    return <ClientStatusView eventId={activeEventId} />;
+  // Landing page route
+  if (currentView === 'landing') {
+    return (
+      <LandingPage 
+        onLaunchApp={() => navigateTo('portfolio')} 
+        onOpenEvent={(id) => navigateTo('event', id || 'evt_1')} 
+      />
+    );
   }
 
-  const { event, vendors, guests } = data || { event: {}, vendors: [], guests: [] };
-  const remainingBudget = (event.budget_total || 0) - (event.budget_spent || 0);
+  // Client status view route
+  if (currentView === 'client_status') {
+    return (
+      <ClientStatusView 
+        eventId={activeEventId || 'evt_1'} 
+        onBack={() => navigateTo('event', activeEventId || 'evt_1')} 
+      />
+    );
+  }
+
+  const { event, vendors = [], guests = [] } = data || { event: null, vendors: [], guests: [] };
 
   return (
-    <div className="min-h-screen bg-ops-base text-ops-text font-sans">
-      {/* Header */}
-      <header className="border-b border-ops-border bg-ops-panel p-6 flex justify-between items-center">
-        <div className="flex items-center space-x-6">
-          <div>
-            <h2 className="text-[10px] font-medium tracking-widest text-ops-muted uppercase mb-1">Relay / Operations Terminal</h2>
-            {currentView === 'event' && event ? (
-              <>
-                <h1 className="text-2xl font-semibold text-ops-text">{event.name}</h1>
-                <p className="text-sm text-ops-muted font-mono">{new Date(event.date).toISOString().split('T')[0]}</p>
-              </>
-            ) : (
-              <h1 className="text-2xl font-semibold text-ops-text">
-                {currentView === 'portfolio' ? 'Portfolio Dashboard' : 'Central Vendors'}
-              </h1>
-            )}
-          </div>
-          <div className="flex space-x-2 border-l border-ops-border pl-6">
-            <button 
-              onClick={() => navigateTo('portfolio')}
-              className={`text-xs uppercase tracking-wider font-medium px-4 py-2 rounded-sm transition-colors ${currentView === 'portfolio' ? 'bg-ops-border text-ops-text' : 'text-ops-muted hover:text-ops-text'}`}
-            >
-              Portfolio
-            </button>
-            {activeEventId && (
-              <button 
-                onClick={() => navigateTo('event', activeEventId)}
-                className={`text-xs uppercase tracking-wider font-medium px-4 py-2 rounded-sm transition-colors ${currentView === 'event' ? 'bg-ops-border text-ops-text' : 'text-ops-muted hover:text-ops-text'}`}
-              >
-                Event Dashboard
-              </button>
-            )}
-            <button 
-              onClick={() => navigateTo('global_vendors', activeEventId)}
-              className={`text-xs uppercase tracking-wider font-medium px-4 py-2 rounded-sm transition-colors ${currentView === 'global_vendors' ? 'bg-ops-border text-ops-text' : 'text-ops-muted hover:text-ops-text'}`}
-            >
-              Central Vendors
-            </button>
-          </div>
-        </div>
-        <div className="flex items-center space-x-4 relative">
-          
-          {/* Notification Bell */}
-          <div className="relative">
-            <button 
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="text-ops-muted hover:text-ops-text p-1 transition-colors relative"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-3 h-3 text-[8px] font-bold text-white bg-ops-red rounded-full">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
+    <div className="min-h-screen bg-canvas-soft text-ink font-sans antialiased flex flex-col selection:bg-primary/15 selection:text-ink">
+      
+      {/* 1. Global Navigation Bar */}
+      <Navbar
+        currentUser={currentUser}
+        users={USERS}
+        onUserChange={handleUserChange}
+        currentView={currentView}
+        activeEventId={activeEventId}
+        activeEvent={event}
+        onNavigate={navigateTo}
+        notifications={notifications}
+        notificationsOpen={notificationsOpen}
+        onToggleNotifications={() => setNotificationsOpen(!notificationsOpen)}
+        onNotificationClick={handleNotificationClick}
+        onMarkAllRead={handleMarkAllRead}
+        onOpenDisruptionModal={() => setShowDisruptionModal(true)}
+        onOpenImportModal={() => { setImportResult(null); setShowImportModal(true); }}
+        onResetDemo={handleResetDemo}
+        isResetting={isResetting}
+      />
 
-            {/* Notification Dropdown */}
-            {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-ops-panel border border-ops-border shadow-xl rounded-sm z-50 overflow-hidden">
-                <div className="flex justify-between items-center p-3 border-b border-ops-border bg-ops-base">
-                  <h3 className="text-[10px] font-semibold text-ops-text uppercase tracking-wider">Notifications</h3>
-                  {unreadCount > 0 && (
-                    <button 
-                      onClick={handleMarkAllRead}
-                      className="text-[10px] text-ops-teal hover:text-ops-teal/80 uppercase tracking-wider"
-                    >
-                      Mark all read
-                    </button>
-                  )}
-                </div>
-                <div className="max-h-64 overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-ops-muted">No notifications</div>
-                  ) : (
-                    notifications.map(notif => (
-                      <div 
-                        key={notif._id} 
-                        onClick={() => handleNotificationClick(notif)}
-                        className={`p-3 border-b border-ops-border/50 cursor-pointer transition-colors hover:bg-ops-base ${notif.read ? 'opacity-60' : 'bg-ops-base/50'}`}
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider ${notif.severity === 'critical' || notif.severity === 'high' ? 'text-ops-red' : 'text-ops-teal'}`}>
-                            {notif.title}
-                          </span>
-                          {!notif.read && <span className="w-2 h-2 rounded-full bg-ops-red"></span>}
-                        </div>
-                        <p className="text-xs text-ops-text">{notif.message}</p>
-                        <span className="text-[9px] text-ops-muted mt-2 block">{new Date(notif.created_at).toLocaleTimeString()}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
+      {/* 2. Main Workspace Body */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        {/* VIEW A: PORTFOLIO DASHBOARD */}
+        {currentView === 'portfolio' && (
+          <PortfolioView
+            events={portfolioEvents}
+            onSelectEvent={id => navigateTo('event', id)}
+            portfolioSort={portfolioSort}
+            onSortChange={setPortfolioSort}
+            portfolioFilter={portfolioFilter}
+            onFilterChange={setPortfolioFilter}
+          />
+        )}
+
+        {/* VIEW B: CENTRAL VENDOR REPOSITORY */}
+        {currentView === 'global_vendors' && (
+          <GlobalVendorsView
+            gVendors={gVendors}
+            loadingGVendors={loadingGVendors}
+            currentUser={currentUser}
+            onOpenCreateVendorModal={() => setGVendorFormOpen(true)}
+            onOpenAssignModal={handleOpenAssignModal}
+          />
+        )}
+
+        {/* VIEW C: EVENT OPERATIONS WORKSPACE */}
+        {currentView === 'event' && (
+          <>
+            {loading && !data ? (
+              <div className="min-h-[50vh] flex flex-col items-center justify-center p-12 text-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  Loading Event Operations Workspace...
+                </p>
               </div>
-            )}
-          </div>
-
-          {currentView === 'event' && event && <StatusIndicator status={event.status} />}
-          
-          <select 
-            value={currentUser.id} 
-            onChange={handleUserChange}
-            className="text-xs bg-ops-base border border-ops-border text-ops-text p-1.5 focus:outline-none focus:border-ops-muted rounded-sm font-medium uppercase tracking-wider"
-          >
-            {USERS.map(u => (
-              <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-            ))}
-          </select>
-
-          {currentView === 'event' && activeEventId && (
-            <>
-              <button 
-                onClick={() => setShowDisruptionModal(true)}
-                className="text-xs bg-ops-red text-ops-base hover:bg-ops-red/80 px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
-              >
-                Report Disruption
-              </button>
-
-              <button 
-                onClick={() => window.open(`/event/${activeEventId}/client-status`, '_blank')}
-                className="text-xs border border-ops-border bg-ops-base hover:bg-ops-panel text-ops-text px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
-              >
-                Client Status
-              </button>
-
-              <button 
-                onClick={() => setShowImportModal(true)}
-                className="text-xs border border-ops-border bg-ops-base hover:bg-ops-panel text-ops-text px-3 py-1.5 transition-colors font-medium rounded-sm uppercase tracking-wider"
-              >
-                Import Data
-              </button>
-            </>
-          )}
-
-          <button 
-            onClick={handleResetDemo}
-            disabled={isResetting}
-            className="text-xs border border-ops-border bg-ops-base hover:bg-ops-border text-ops-text px-3 py-1.5 transition-colors disabled:opacity-50 flex items-center rounded-sm"
-          >
-            {isResetting ? (
-              <><span className="inline-block w-3 h-3 border border-ops-text border-t-transparent animate-spin mr-2 align-middle"></span> Resetting</>
-            ) : (
-              'Reset Demo'
-            )}
-          </button>
-        </div>
-      </header>
-
-      {currentView === 'portfolio' ? (
-        <main className="p-6 max-w-7xl mx-auto space-y-6">
-          <div className="flex justify-between items-center bg-ops-panel border border-ops-border rounded-sm p-4">
-            <div className="flex space-x-4">
-              <div>
-                <label className="text-[10px] uppercase tracking-wider text-ops-muted block mb-1">Sort By</label>
-                <select className="bg-ops-base border border-ops-border text-xs rounded-sm p-1.5 text-ops-text" value={portfolioSort} onChange={e => setPortfolioSort(e.target.value)}>
-                  <option value="date">Event Date</option>
-                  <option value="risk">Risk Exposure</option>
-                  <option value="budget">Value at Stake</option>
-                  <option value="disruptions">Unresolved Disruptions</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-wider text-ops-muted block mb-1">Health Filter</label>
-                <select className="bg-ops-base border border-ops-border text-xs rounded-sm p-1.5 text-ops-text" value={portfolioFilter} onChange={e => setPortfolioFilter(e.target.value)}>
-                  <option value="all">All Events</option>
-                  <option value="on_track">Healthy (On Track)</option>
-                  <option value="at_risk">At Risk</option>
-                  <option value="critical">Critical</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedPortfolio.map(evt => (
-              <div 
-                key={evt._id} 
-                onClick={() => navigateTo('event', evt._id)}
-                className="bg-ops-panel border border-ops-border rounded-sm p-5 cursor-pointer hover:border-ops-muted transition-colors relative group"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-medium text-ops-text">{evt.name}</h3>
-                  <StatusIndicator status={evt.health || 'on_track'} />
-                </div>
-                
-                <div className="space-y-2 mb-6">
-                  <div className="flex justify-between text-sm border-b border-ops-border/50 pb-1">
-                    <span className="text-ops-muted">Date</span>
-                    <span className="font-mono text-ops-text">{new Date(evt.date).toISOString().split('T')[0]}</span>
-                  </div>
-                  <div className="flex justify-between text-sm border-b border-ops-border/50 pb-1">
-                    <span className="text-ops-muted">Value at Stake</span>
-                    <span className="font-mono text-ops-text">₹{(evt.budget_total || 0).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm border-b border-ops-border/50 pb-1">
-                    <span className="text-ops-muted">Unresolved Disruptions</span>
-                    <span className={`font-mono ${evt.unresolved_disruptions > 0 ? 'text-ops-red' : 'text-ops-text'}`}>{evt.unresolved_disruptions || 0}</span>
-                  </div>
-                </div>
-
-                <div className="absolute inset-x-0 bottom-0 h-1 bg-ops-base">
-                  <div className={`h-full ${evt.health === 'critical' ? 'bg-ops-red' : evt.health === 'at_risk' ? 'bg-ops-amber' : 'bg-ops-teal'}`}></div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {sortedPortfolio.length === 0 && (
-            <div className="p-8 text-center text-ops-muted text-sm border border-ops-border rounded-sm">No events found matching current criteria.</div>
-          )}
-        </main>
-      ) : currentView === 'global_vendors' ? (
-        <main className="p-6 max-w-7xl mx-auto space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-medium text-ops-text uppercase tracking-wider">Central Vendor Database</h2>
-            {currentUser.role === 'admin' && (
-              <button 
-                onClick={() => setGVendorFormOpen(true)}
-                className="text-xs bg-ops-teal text-ops-base px-4 py-2 rounded-sm uppercase tracking-wider font-medium hover:bg-ops-teal/80 transition-colors"
-              >
-                Add Vendor
-              </button>
-            )}
-          </div>
-          <div className="bg-ops-panel border border-ops-border rounded-sm p-4">
-            <input 
-              type="text" 
-              placeholder="Search vendors..."
-              className="w-full bg-ops-base border border-ops-border rounded-sm p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted mb-4"
-              value={gVendorSearch}
-              onChange={e => setGVendorSearch(e.target.value)}
-            />
-            {loadingGVendors ? (
-              <div className="text-center p-8 text-ops-muted text-sm">Loading vendors...</div>
-            ) : (
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-ops-border text-[10px] uppercase tracking-wider text-ops-muted">
-                    <th className="p-3 font-medium">Vendor</th>
-                    <th className="p-3 font-medium">Category</th>
-                    <th className="p-3 font-medium text-right">Base Quote</th>
-                    <th className="p-3 font-medium text-center">Assigned Events</th>
-                    <th className="p-3 font-medium text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-ops-border/50 text-sm">
-                  {gVendors.filter(v => v.name.toLowerCase().includes(gVendorSearch.toLowerCase())).map(v => (
-                    <tr key={v._id} className="hover:bg-ops-border/30 transition-colors">
-                      <td className="p-3">
-                        <div className="font-medium text-ops-text">{v.name}</div>
-                        <div className="text-[10px] text-ops-muted font-mono">{v._id}</div>
-                      </td>
-                      <td className="p-3 text-ops-muted capitalize">{v.category}</td>
-                      <td className="p-3 text-right font-mono text-ops-text">₹{v.base_quote.toLocaleString()}</td>
-                      <td className="p-3 text-center text-ops-muted">{v.cost_history?.length || 0}</td>
-                      <td className="p-3 text-right space-x-2">
-                        {currentUser.role !== 'planner' && (
-                          <button 
-                            onClick={() => handleOpenAssignModal(v)}
-                            className="text-[10px] uppercase tracking-wider border border-ops-teal text-ops-teal px-2 py-1 rounded-sm hover:bg-ops-teal hover:text-ops-base transition-colors"
-                          >
-                            Assign
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {gVendors.length === 0 && (
-                    <tr><td colSpan="5" className="p-8 text-center text-ops-muted text-sm">No vendors found in central database.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </main>
-      ) : (
-        <main className="p-6 max-w-7xl mx-auto space-y-6">
-          {/* KPI Section */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-ops-panel border border-ops-border rounded-sm p-4">
-            <p className="text-xs uppercase tracking-wider text-ops-muted mb-2">Guests</p>
-            <p className="text-2xl font-mono text-ops-text">{event.guest_count}</p>
-          </div>
-          <div className="bg-ops-panel border border-ops-border rounded-sm p-4">
-            <p className="text-xs uppercase tracking-wider text-ops-muted mb-2">Budget</p>
-            <p className="text-2xl font-mono text-ops-text text-right">₹{event.budget_total.toLocaleString()}</p>
-          </div>
-          <div className="bg-ops-panel border border-ops-border rounded-sm p-4">
-            <p className="text-xs uppercase tracking-wider text-ops-muted mb-2">Spent</p>
-            <p className="text-2xl font-mono text-ops-text text-right">₹{event.budget_spent.toLocaleString()}</p>
-          </div>
-          <div className="bg-ops-panel border border-ops-border rounded-sm p-4">
-            <p className="text-xs uppercase tracking-wider text-ops-muted mb-2">Remaining</p>
-            <p className={`text-2xl font-mono text-right ${remainingBudget < 0 ? 'text-ops-red' : 'text-ops-teal'}`}>
-              ₹{remainingBudget.toLocaleString()}
-            </p>
-          </div>
-        </section>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Area: Vendors */}
-          <section className="lg:col-span-2 bg-ops-panel border border-ops-border rounded-sm overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-ops-border flex justify-between items-center bg-ops-panel/50">
-              <h3 className="text-sm uppercase tracking-wider text-ops-text font-medium">Vendors</h3>
-            </div>
-            
-            {vendors.length === 0 ? (
-              <div className="p-8 text-center text-ops-muted">No vendors found.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-ops-border bg-ops-base/50 text-[10px] uppercase tracking-wider text-ops-muted">
-                      <th className="p-3 font-medium">Vendor Name</th>
-                      <th className="p-3 font-medium">Category</th>
-                      <th className="p-3 font-medium">Status</th>
-                      <th className="p-3 font-medium text-right">Quote</th>
-                      <th className="p-3 font-medium text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-ops-border/50 text-sm">
-                    {vendors.map(v => (
-                      <tr key={v._id} className="hover:bg-ops-border/30 transition-colors">
-                        <td className="p-3 text-ops-text font-medium">{v.name}</td>
-                        <td className="p-3 text-ops-muted capitalize">{v.category}</td>
-                        <td className="p-3">
-                          {editingVendor === v._id ? (
-                            <select 
-                              className="bg-ops-base border border-ops-border text-xs rounded-sm p-1 text-ops-text focus:outline-none focus:border-ops-muted"
-                              value={vendorForm.status}
-                              onChange={e => setVendorForm({...vendorForm, status: e.target.value})}
-                            >
-                              <option value="confirmed">Confirmed</option>
-                              <option value="cancelled">Cancelled</option>
-                              <option value="backup_candidate">Backup</option>
-                              <option value="rejected">Rejected</option>
-                            </select>
-                          ) : (
-                            <StatusIndicator status={v.status} />
-                          )}
-                        </td>
-                        <td className="p-3 text-right text-ops-text font-mono">
-                          {editingVendor === v._id ? (
-                            <input 
-                              type="number"
-                              className="w-20 bg-ops-base border border-ops-border text-xs rounded-sm p-1 text-right focus:outline-none focus:border-ops-muted"
-                              value={vendorForm.quote}
-                              onChange={e => setVendorForm({...vendorForm, quote: e.target.value})}
-                            />
-                          ) : (
-                            `₹${v.quote.toLocaleString()}`
-                          )}
-                        </td>
-                        <td className="p-3 text-right">
-                          {editingVendor === v._id ? (
-                            <div className="flex justify-end space-x-3">
-                              <button onClick={(e) => handleVendorSubmit(e, v._id)} className="text-[10px] uppercase tracking-wider text-ops-teal hover:text-white">Save</button>
-                              <button onClick={() => setEditingVendor(null)} className="text-[10px] uppercase tracking-wider text-ops-muted hover:text-white">Cancel</button>
-                            </div>
-                          ) : (
-                            <button 
-                              onClick={() => {
-                                setEditingVendor(v._id);
-                                setVendorForm({ status: v.status, quote: v.quote });
-                              }}
-                              className="text-[10px] uppercase tracking-wider text-ops-muted hover:text-white font-medium"
-                            >
-                              Edit
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {vendorError && <div className="p-3 text-xs text-ops-red bg-ops-red/10 border-t border-ops-red/20">{vendorError}</div>}
-              </div>
-            )}
-          </section>
-
-          {/* Secondary Area: Event Overview */}
-          <section className="bg-ops-panel border border-ops-border rounded-sm p-4 flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm uppercase tracking-wider text-ops-text font-medium">Event Overview</h3>
-              {!editingBudget && (
-                <button 
-                  onClick={() => setEditingBudget(true)}
-                  className="text-[10px] uppercase tracking-wider text-ops-muted hover:text-white font-medium"
+            ) : error ? (
+              <div className="bg-white border border-sticker-red/30 rounded-2xl p-8 max-w-lg mx-auto text-center shadow-card my-12">
+                <p className="text-sm font-bold text-sticker-red mb-2">Access Error</p>
+                <p className="text-xs text-ink-muted mb-4">{error}</p>
+                <button
+                  onClick={() => navigateTo('portfolio')}
+                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-active rounded-lg transition-colors shadow-micro"
                 >
-                  Edit
+                  Return to Portfolio
                 </button>
-              )}
-            </div>
+              </div>
+            ) : event ? (
+              <div className="space-y-6">
+                
+                {/* Hero Night Band per DESIGN.md */}
+                <HeroBand
+                  event={event}
+                  guests={guests}
+                  activeDisruptions={activeDisruptions}
+                  onAddGuests={handleAddGuests}
+                  onSimulateDisruption={handleSimulateDisruption}
+                  onOpenDisruptionModal={() => setShowDisruptionModal(true)}
+                  onOpenClientView={() => navigateTo('client_status', activeEventId)}
+                  isNegotiating={negotiationActive}
+                  guestCountAnimating={guestCountAnimating}
+                />
 
-            <div className="space-y-4 flex-grow">
-              {editingBudget ? (
-                <form onSubmit={handleBudgetSubmit} className="space-y-3 bg-ops-base p-4 rounded-sm border border-ops-border">
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Total Budget</label>
-                    <input 
-                      type="number" 
-                      className="w-full bg-ops-panel border border-ops-border rounded-sm p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted font-mono"
-                      value={budgetForm.budget_total}
-                      onChange={e => setBudgetForm({...budgetForm, budget_total: e.target.value})}
+                {/* KPI Metrics & Run of Show */}
+                <EventOverview
+                  event={event}
+                  guests={guests}
+                  editingBudget={editingBudget}
+                  setEditingBudget={setEditingBudget}
+                  budgetForm={budgetForm}
+                  setBudgetForm={setBudgetForm}
+                  onBudgetSubmit={handleBudgetSubmit}
+                  budgetError={budgetError}
+                  guestCountAnimating={guestCountAnimating}
+                  currentUser={currentUser}
+                />
+
+                {/* 2-Column Grid: Vendors & AI Telemetry Hub */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                  
+                  {/* Left Column: Engaged Vendor Ledger (7 cols) */}
+                  <div className="lg:col-span-7 space-y-6">
+                    <VendorTable
+                      vendors={vendors}
+                      editingVendor={editingVendor}
+                      vendorForm={vendorForm}
+                      setVendorForm={setVendorForm}
+                      onStartEditVendor={handleStartEditVendor}
+                      onCancelEditVendor={handleCancelEditVendor}
+                      onSaveVendor={handleSaveVendor}
+                      vendorError={vendorError}
+                      onCancelVendorDirect={handleCancelVendorDirect}
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Budget Spent</label>
-                    <input 
-                      type="number" 
-                      className="w-full bg-ops-panel border border-ops-border rounded-sm p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted font-mono"
-                      value={budgetForm.budget_spent}
-                      onChange={e => setBudgetForm({...budgetForm, budget_spent: e.target.value})}
+
+                  {/* Right Column: AI Contingency Hub & Telemetry (5 cols) */}
+                  <div className="lg:col-span-5 space-y-6">
+                    <AgentTelemetry
+                      activeDisruptions={activeDisruptions}
+                      vendors={vendors}
+                      decisions={decisions}
+                      onGeneratePlan={handleGeneratePlan}
+                      generatingPlan={generatingPlan}
+                      recoveryPlan={recoveryPlan}
+                      traceEvents={traceEvents}
+                      negotiationActive={negotiationActive}
+                      traceEndRef={traceEndRef}
+                      onApproveAndExecute={handleApproveAndExecute}
+                      executingOptionId={executingOptionId}
+                      executionMessage={executionMessage}
+                      currentUser={currentUser}
                     />
                   </div>
-                  {budgetError && <p className="text-xs text-ops-red">{budgetError}</p>}
-                  <div className="flex space-x-2 pt-2">
-                    <button type="submit" className="flex-1 bg-ops-border hover:bg-ops-muted text-ops-text text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                      Save Changes
-                    </button>
-                    <button type="button" onClick={() => setEditingBudget(false)} className="flex-1 bg-ops-base border border-ops-border hover:bg-ops-panel text-ops-muted text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex justify-between border-b border-ops-border/50 pb-2">
-                    <span className="text-ops-muted text-sm">Guest Count</span>
-                    <span className={`text-sm font-mono transition-colors duration-300 ${guestCountAnimating ? 'text-ops-teal font-bold' : 'text-ops-text'}`}>
-                      {event.guest_count} <span className="text-ops-muted text-xs">/ {guests.length} RSVP</span>
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-b border-ops-border/50 pb-2">
-                    <span className="text-ops-muted text-sm">Total Budget</span>
-                    <span className="text-ops-text text-sm font-mono">₹{event.budget_total.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-ops-border/50 pb-2">
-                    <span className="text-ops-muted text-sm">Spent</span>
-                    <span className="text-ops-text text-sm font-mono">₹{event.budget_spent.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-ops-border/50 pb-2">
-                    <span className="text-ops-muted text-sm">Remaining</span>
-                    <span className={`text-sm font-mono ${remainingBudget < 0 ? 'text-ops-red' : 'text-ops-teal'}`}>
-                      ₹{remainingBudget.toLocaleString()}
-                    </span>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="w-full bg-ops-base h-1.5 mt-2 overflow-hidden">
-                    <div 
-                      className={`h-full ${remainingBudget < 0 ? 'bg-ops-red' : 'bg-ops-teal'}`} 
-                      style={{ width: `${Math.min((event.budget_spent / event.budget_total) * 100, 100)}%` }}
-                    ></div>
-                  </div>
+
                 </div>
-              )}
-            </div>
-            
-            <div className="mt-6 pt-4 border-t border-ops-border">
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="text-[10px] uppercase tracking-wider text-ops-muted font-medium">Activity Stream</h4>
-                <div className="space-x-2">
-                  <button 
-                    onClick={handleAddGuests}
-                    disabled={!negotiationActive}
-                    className="text-[10px] border border-ops-border bg-ops-base hover:bg-ops-border text-ops-text px-2 py-1 tracking-wider uppercase font-medium disabled:opacity-50 transition-colors"
-                  >
-                    +12 Guests
-                  </button>
-                  <button 
-                    onClick={handleSimulateDisruption}
-                    className="text-[10px] border border-ops-border bg-ops-base hover:bg-ops-border text-ops-text px-2 py-1 tracking-wider uppercase font-medium transition-colors"
-                  >
-                    Simulate Disruption
-                  </button>
-                </div>
+
               </div>
-              <div className="bg-ops-base border border-ops-border rounded-sm p-4 text-center">
-                {vendors.some(v => v.status === 'cancelled') ? (
-                  <div className="text-sm text-ops-amber text-left space-y-2">
-                    {vendors.filter(v => v.status === 'cancelled').map(v => {
-                      const isResolved = decisions.some(d => d.status === 'executed' && d.disruption?.vendor_id === v._id);
-                      return (
-                        <div key={v._id} className="bg-ops-panel border-l-2 border-ops-amber p-3 flex flex-col items-start space-y-2">
-                          <span className="font-mono text-xs uppercase text-ops-text">Disruption: {v.category} cancelled ({v.name})</span>
-                          {!recoveryPlan && !negotiationActive && !isResolved && (
-                            <button 
-                              onClick={handleGeneratePlan}
-                              disabled={generatingPlan}
-                              className="text-[10px] border border-ops-border bg-ops-base hover:bg-ops-border text-ops-text px-3 py-1 uppercase tracking-wider font-medium transition-colors disabled:opacity-50"
-                            >
-                              {generatingPlan ? 'Generating Plan...' : 'Generate Recovery Plan'}
-                            </button>
-                          )}
-                          {isResolved && (
-                            <span className="text-[10px] uppercase text-ops-teal tracking-wider font-medium">■ Disruption Resolved</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-xs text-ops-muted uppercase tracking-wider">No active disruptions</p>
-                )}
-                
-                {(traceEvents.length > 0 || (negotiationActive && !recoveryPlan)) && (
-                  <div className="mt-4 text-left border border-ops-border bg-ops-panel p-3">
-                    <h5 className="text-[10px] text-ops-muted uppercase tracking-widest mb-2 font-medium border-b border-ops-border pb-1">Agent Telemetry</h5>
-                    <div className="space-y-1 overflow-y-auto max-h-48 pr-2 scrollbar-thin scrollbar-thumb-ops-border">
-                      {traceEvents.map((evt, idx) => (
-                        <div key={idx} className="text-xs font-mono text-ops-text flex space-x-2">
-                          <span className="text-ops-muted">[{evt.timestamp || '00:00:00'}]</span>
-                          {evt.type === 'agent.tool_call' ? (
-                            <span className="text-ops-amber">{'[TOOL]'}</span>
-                          ) : (
-                            <span className="text-ops-teal">{'[AGENT]'}</span>
-                          )}
-                          <span className="text-ops-text">{evt.data}</span>
-                        </div>
-                      ))}
-                      {negotiationActive && !recoveryPlan && (
-                        <div className="text-xs font-mono text-ops-muted flex space-x-2 mt-1">
-                          <span>[--:--:--]</span>
-                          <span className="text-ops-text">{'[SYSTEM]'}</span>
-                          <span className="animate-pulse flex items-center">Awaiting response<span className="animate-pulse ml-1 opacity-70">_</span></span>
-                        </div>
-                      )}
-                      <div ref={traceEndRef} />
-                    </div>
-                  </div>
-                )}
-                
-                {recoveryPlan && (
-                  <div className={`mt-4 text-left border border-ops-border bg-ops-panel p-4 transition-opacity duration-300 ${executingOptionId !== null ? 'opacity-50 pointer-events-none' : ''}`}>
-                    <h5 className="text-[10px] font-medium text-ops-teal uppercase tracking-widest mb-3 border-b border-ops-border pb-1">AI Recovery Plan</h5>
-                    <p className="text-sm text-ops-text mb-4">{recoveryPlan.summary}</p>
-                    
-                    <div className="space-y-3">
-                      {recoveryPlan.options.map((opt, i) => (
-                        <div key={i} className={`p-4 rounded-sm border ${opt.recommended ? 'border-ops-teal bg-ops-base' : 'border-ops-border bg-ops-base/50'}`}>
-                          <div className="flex justify-between items-start mb-2">
-                            <h6 className="font-semibold text-ops-text text-sm">
-                              {opt.title} 
-                              {opt.recommended && <span className="text-[10px] bg-ops-teal text-ops-base px-1.5 py-0.5 rounded-sm ml-2 uppercase tracking-wider">Recommended</span>}
-                            </h6>
-                            <span className="text-xs font-mono text-ops-text">Est: ₹{opt.estimated_cost_change.toLocaleString()}</span>
-                          </div>
-                          <p className="text-sm text-ops-muted mb-4">{opt.description}</p>
-                          <div className="grid grid-cols-2 gap-4 text-xs">
-                            <div className="border-t border-ops-border pt-2">
-                              <strong className="text-ops-teal block mb-1 uppercase tracking-widest text-[9px]">Pros</strong>
-                              <ul className="list-disc pl-3 text-ops-text space-y-1">
-                                {opt.pros.map((p, j) => <li key={j}>{p}</li>)}
-                              </ul>
-                            </div>
-                            <div className="border-t border-ops-border pt-2">
-                              <strong className="text-ops-red block mb-1 uppercase tracking-widest text-[9px]">Cons</strong>
-                              <ul className="list-disc pl-3 text-ops-text space-y-1">
-                                {opt.cons.map((c, j) => <li key={j}>{c}</li>)}
-                              </ul>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-4 pt-3 border-t border-ops-border text-right">
-                            <button 
-                              onClick={() => handleApproveAndExecute(opt)}
-                              disabled={executingOptionId !== null || currentUser.role === 'planner'}
-                              title={currentUser.role === 'planner' ? 'Planners cannot approve recovery actions' : ''}
-                              className={`text-xs px-4 py-1.5 rounded-sm uppercase tracking-wider font-medium transition-colors ${opt.recommended ? 'bg-ops-teal text-ops-base hover:bg-ops-teal/80' : 'bg-ops-border text-ops-text hover:bg-ops-muted'} disabled:opacity-50 disabled:cursor-not-allowed`}
-                            >
-                              {executingOptionId === opt.option_id ? 'Executing' : 'Execute'}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {executionMessage && (
-                  <div className={`mt-4 p-3 rounded-sm text-sm text-left border font-mono ${executionMessage.type === 'error' ? 'bg-ops-red/10 border-ops-red text-ops-red' : executionMessage.type === 'success' ? 'bg-ops-teal/10 border-ops-teal text-ops-teal' : 'bg-ops-amber/10 border-ops-amber text-ops-amber'}`}>
-                    {executionMessage.text}
-                  </div>
-                )}
-                
-                {decisions.length > 0 && (
-                  <div className="mt-4 text-left border-t border-ops-border pt-4">
-                    <h5 className="text-[10px] font-medium text-ops-muted uppercase tracking-wider mb-2">Decisions Log</h5>
-                    <div className="space-y-2">
-                      {decisions.map(d => (
-                        <div key={d._id} className="text-xs font-mono bg-ops-base border border-ops-border p-2 rounded-sm flex justify-between items-center">
-                          <span className="text-ops-text">Human approved: {d.option_id.replace(/_/g, ' ')}</span>
-                          <span className={`px-2 py-0.5 rounded-sm uppercase tracking-wider text-[9px] ${d.status === 'executed' ? 'bg-ops-teal text-ops-base' : d.status === 'failed' ? 'bg-ops-red text-ops-base' : 'bg-ops-panel text-ops-muted'}`}>{d.status}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-        </div>
+            ) : null}
+          </>
+        )}
+
       </main>
-      )}
 
-      {/* Modals */}
-      {showDisruptionModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-ops-panel border border-ops-border p-6 rounded-sm w-[400px]">
-            <h3 className="text-lg font-medium text-ops-text uppercase tracking-wider mb-4 border-b border-ops-border pb-2">Report Disruption</h3>
-            <form onSubmit={handleReportDisruptionSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Type</label>
-                <select 
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm"
-                  value={disruptionForm.type}
-                  onChange={e => setDisruptionForm({...disruptionForm, type: e.target.value})}
-                >
-                  <option value="vendor_cancellation">Vendor Cancellation</option>
-                  <option value="budget_change">Budget Change</option>
-                  <option value="headcount_change">Headcount Change</option>
-                  <option value="timeline_conflict">Timeline Conflict</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Severity</label>
-                <select 
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm"
-                  value={disruptionForm.severity}
-                  onChange={e => setDisruptionForm({...disruptionForm, severity: e.target.value})}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Description</label>
-                <textarea 
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm min-h-[80px]"
-                  value={disruptionForm.description}
-                  onChange={e => setDisruptionForm({...disruptionForm, description: e.target.value})}
-                  placeholder="Describe the disruption..."
-                  required
-                />
-              </div>
-              {disruptionForm.type === 'vendor_cancellation' && (
-                <div>
-                  <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Vendor ID</label>
-                  <input 
-                    type="text"
-                    className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm font-mono"
-                    value={disruptionForm.vendor_id || ''}
-                    onChange={e => setDisruptionForm({...disruptionForm, vendor_id: e.target.value})}
-                    placeholder="ven_catering_1"
-                  />
-                </div>
-              )}
-              <div className="flex space-x-3 pt-4 border-t border-ops-border">
-                <button type="submit" className="flex-1 bg-ops-red hover:bg-ops-red/80 text-ops-base text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Report
-                </button>
-                <button type="button" onClick={() => setShowDisruptionModal(false)} className="flex-1 bg-ops-base border border-ops-border hover:bg-ops-panel text-ops-muted text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* 3. Global Modals */}
+      <ReportDisruptionModal
+        isOpen={showDisruptionModal}
+        onClose={() => setShowDisruptionModal(false)}
+        onSubmit={handleReportDisruptionSubmit}
+        form={disruptionForm}
+        setForm={setDisruptionForm}
+        vendors={vendors}
+      />
 
-      {showImportModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-ops-panel border border-ops-border p-6 rounded-sm w-[500px]">
-            <h3 className="text-lg font-medium text-ops-text uppercase tracking-wider mb-4 border-b border-ops-border pb-2">Import Data</h3>
-            <form onSubmit={handleImportSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Domain</label>
-                <select 
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm"
-                  value={importForm.domain}
-                  onChange={e => setImportForm({...importForm, domain: e.target.value})}
-                >
-                  <option value="budget">Budget</option>
-                  <option value="vendors">Vendors</option>
-                  <option value="timeline">Timeline</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">CSV Data Payload</label>
-                <textarea 
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm min-h-[150px] font-mono text-xs whitespace-pre"
-                  value={importForm.csv_data}
-                  onChange={e => setImportForm({...importForm, csv_data: e.target.value})}
-                  placeholder="Paste CSV text here..."
-                  required
-                />
-              </div>
-              {importResult && <div className="text-xs text-ops-teal font-mono bg-ops-teal/10 p-2 border border-ops-teal/20 rounded-sm">{importResult}</div>}
-              <div className="flex space-x-3 pt-4 border-t border-ops-border">
-                <button type="submit" className="flex-1 bg-ops-teal hover:bg-ops-teal/80 text-ops-base text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Import
-                </button>
-                <button type="button" onClick={() => { setShowImportModal(false); setImportResult(null); }} className="flex-1 bg-ops-base border border-ops-border hover:bg-ops-panel text-ops-muted text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Close
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <ImportDataModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onSubmit={handleImportSubmit}
+        form={importForm}
+        setForm={setImportForm}
+        result={importResult}
+      />
 
-      {gVendorFormOpen && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-ops-panel border border-ops-border p-6 rounded-sm w-[400px]">
-            <h3 className="text-lg font-medium text-ops-text uppercase tracking-wider mb-4 border-b border-ops-border pb-2">Create Global Vendor</h3>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                await createGlobalVendor(gVendorForm);
-                setGVendorFormOpen(false);
-                setGVendorForm({ name: '', category: 'catering', base_quote: 0 });
-                loadGlobalVendors();
-              } catch(err) {
-                alert(err.message);
-              }
-            }} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Name</label>
-                <input 
-                  type="text"
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm"
-                  value={gVendorForm.name}
-                  onChange={e => setGVendorForm({...gVendorForm, name: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Category</label>
-                <input 
-                  type="text"
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm"
-                  value={gVendorForm.category}
-                  onChange={e => setGVendorForm({...gVendorForm, category: e.target.value})}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Base Quote</label>
-                <input 
-                  type="number"
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm"
-                  value={gVendorForm.base_quote}
-                  onChange={e => setGVendorForm({...gVendorForm, base_quote: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="flex space-x-3 pt-4 border-t border-ops-border">
-                <button type="submit" className="flex-1 bg-ops-teal hover:bg-ops-teal/80 text-ops-base text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Create
-                </button>
-                <button type="button" onClick={() => setGVendorFormOpen(false)} className="flex-1 bg-ops-base border border-ops-border hover:bg-ops-panel text-ops-muted text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <CreateGlobalVendorModal
+        isOpen={gVendorFormOpen}
+        onClose={() => setGVendorFormOpen(false)}
+        onSubmit={handleCreateGlobalVendorSubmit}
+        form={gVendorForm}
+        setForm={setGVendorForm}
+      />
 
-      {assignModalOpen && vendorToAssign && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-ops-panel border border-ops-border p-6 rounded-sm w-[400px]">
-            <h3 className="text-lg font-medium text-ops-text uppercase tracking-wider mb-4 border-b border-ops-border pb-2">Assign Vendor</h3>
-            
-            <div className="mb-4 text-sm text-ops-text">
-              <span className="text-ops-muted">Vendor:</span> <span className="font-medium">{vendorToAssign.name}</span>
-            </div>
+      <AssignGlobalVendorModal
+        isOpen={assignModalOpen}
+        onClose={() => { setAssignModalOpen(false); setVendorToAssign(null); }}
+        onSubmit={handleAssignSubmit}
+        vendor={vendorToAssign}
+        events={accountEvents}
+        selectedEventId={selectedEventId}
+        setSelectedEventId={setSelectedEventId}
+        error={assignError}
+      />
 
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              setAssignError(null);
-              if (!selectedEventId) return setAssignError("Please select an event.");
-              try {
-                await associateGlobalVendor(vendorToAssign._id, selectedEventId, vendorToAssign.base_quote);
-                alert(`${vendorToAssign.name} associated with event successfully.`);
-                setAssignModalOpen(false);
-                setVendorToAssign(null);
-                loadGlobalVendors();
-              } catch(err) {
-                setAssignError(err.message);
-              }
-            }} className="space-y-4">
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Event</label>
-                <select 
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm"
-                  value={selectedEventId}
-                  onChange={e => setSelectedEventId(e.target.value)}
-                  required
-                >
-                  {accountEvents.map(evt => (
-                    <option key={evt._id} value={evt._id}>{evt.name} ({evt._id})</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider text-ops-muted mb-1">Quote</label>
-                <input 
-                  type="number"
-                  className="w-full bg-ops-base border border-ops-border p-2 text-sm text-ops-text focus:outline-none focus:border-ops-muted rounded-sm bg-opacity-50 cursor-not-allowed"
-                  value={vendorToAssign.base_quote}
-                  disabled
-                />
-              </div>
-              
-              {assignError && <div className="text-xs text-ops-red bg-ops-red/10 p-2 border border-ops-red/20 rounded-sm">{assignError}</div>}
-              
-              <div className="flex space-x-3 pt-4 border-t border-ops-border">
-                <button type="submit" className="flex-1 bg-ops-teal hover:bg-ops-teal/80 text-ops-base text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Assign
-                </button>
-                <button type="button" onClick={() => { setAssignModalOpen(false); setVendorToAssign(null); }} className="flex-1 bg-ops-base border border-ops-border hover:bg-ops-panel text-ops-muted text-xs uppercase tracking-wider font-medium py-2 rounded-sm transition-colors">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* 4. Global Toast Alert */}
+      <Toast toast={toast} onClose={() => setToast(null)} />
+
     </div>
   );
 }

@@ -3,7 +3,53 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-ops-base text-ops-text font-sans antialiased;
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "lnum" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  body {
+    background-color: #f6f5f4;
+    color: #111827;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  ::selection {
+    background-color: rgba(0, 117, 222, 0.15);
+    color: #111827;
+  }
+}
+
+/* Custom scrollbar for telemetry and dropdowns */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d2cd;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b5b2aa;
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(0.98); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes float-star {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(2deg); }
+}
+
+.animate-float {
+  animation: float-star 6s ease-in-out infinite;
 }
