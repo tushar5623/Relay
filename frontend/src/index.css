@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-primary: #0075de;
+    --color-primary-active: #005bab;
+    --color-primary-light: #e8f3fc;
+  }
   html {
     font-feature-settings: "cv02", "cv03", "cv04", "cv11", "lnum" 1;
     -webkit-font-smoothing: antialiased;
@@ -17,6 +22,27 @@
   ::selection {
     background-color: rgba(0, 117, 222, 0.15);
     color: #111827;
+  }
+}
+
+@layer utilities {
+  .bg-primary {
+    background-color: #0075de !important;
+  }
+  .hover\:bg-primary-active:hover, .bg-primary-active {
+    background-color: #005bab !important;
+  }
+  .bg-primary-light {
+    background-color: #e8f3fc !important;
+  }
+  .text-primary {
+    color: #0075de !important;
+  }
+  .hover\:text-primary-active:hover {
+    color: #005bab !important;
+  }
+  .border-primary {
+    border-color: #0075de !important;
   }
 }
 

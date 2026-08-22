@@ -55,9 +55,9 @@ async def run_negotiation(event_id: str, disruption: dict):
             pass
             
         quotes = [
-            {"name": "Marigold Catering", "quote": 58 * state.headcount},
-            {"name": "Copper Pot Events", "quote": 62 * state.headcount},
-            {"name": "Willow & Vine", "quote": 55 * state.headcount}
+            {"name": "Marigold Catering", "quote": 5800 * state.headcount},
+            {"name": "Copper Pot Events", "quote": 6200 * state.headcount},
+            {"name": "Willow & Vine", "quote": 5500 * state.headcount}
         ]
         
         await ws_manager.broadcast(event_id, {

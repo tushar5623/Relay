@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Calendar, 
-  DollarSign, 
+  IndianRupee, 
   AlertTriangle, 
   ArrowRight, 
   Search, 
@@ -230,7 +230,7 @@ export const PortfolioView = ({
 
                   <div className="flex justify-between items-center py-1 border-b border-hairline">
                     <span className="text-ink-muted flex items-center gap-1.5">
-                      <DollarSign className="w-3.5 h-3.5" /> Value at Stake
+                      <IndianRupee className="w-3.5 h-3.5" /> Value at Stake
                     </span>
                     <span className="font-mono font-semibold text-ink">₹{(evt.budget_total || 0).toLocaleString()}</span>
                   </div>
@@ -272,8 +272,9 @@ export const PortfolioView = ({
           <h4 className="text-base font-semibold text-ink mb-1">No events found</h4>
           <p className="text-xs text-ink-muted mb-4">No events matched your current search and filter settings.</p>
           <button
+            type="button"
             onClick={() => { onFilterChange('all'); setSearchQuery(''); }}
-            className="px-4 py-2 text-xs font-medium text-primary bg-primary-light hover:bg-primary/20 rounded-lg transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-[#0075de] bg-[#e8f3fc] hover:bg-[#d0e7fa] border border-[#0075de]/30 rounded-lg transition-colors cursor-pointer"
           >
             Clear Filters
           </button>

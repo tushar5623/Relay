@@ -100,7 +100,7 @@ def seed_database():
             "account_id": "acc_1",
             "category": "catering",
             "name": "Marigold Catering (Global)",
-            "base_quote": 8500,
+            "base_quote": 850000,
             "contact_email": "hello@marigold.com"
         },
         {
@@ -108,7 +108,7 @@ def seed_database():
             "account_id": "acc_1",
             "category": "music/sound",
             "name": "DJ Smooth (Global)",
-            "base_quote": 1200,
+            "base_quote": 120000,
             "contact_email": "booking@djsmooth.com"
         }
     ]
@@ -122,16 +122,16 @@ def seed_database():
         "name": "Priya's Wedding",
         "date": "2026-09-12",
         "guest_count": 150,
-        "budget_total": 18000,
+        "budget_total": 1800000,
         "budget_allocated": {
-            "catering": 9000,
-            "venue": 4000,
-            "photography": 2000,
-            "decoration": 1100,
-            "music/sound": 900,
-            "transportation": 600
+            "catering": 900000,
+            "venue": 400000,
+            "photography": 200000,
+            "decoration": 110000,
+            "music/sound": 90000,
+            "transportation": 60000
         },
-        "budget_spent": 17600,
+        "budget_spent": 1760000,
         "status": "on_track",
         "timeline": [
             { "id": "t1", "time": "14:00", "block": "Vendor Load-in", "dependencies": [] },
@@ -148,13 +148,13 @@ def seed_database():
         "name": "Corporate Summit",
         "date": "2026-10-04",
         "guest_count": 300,
-        "budget_total": 45000,
+        "budget_total": 4500000,
         "budget_allocated": {
-            "venue": 20000,
-            "catering": 15000,
-            "av": 10000
+            "venue": 2000000,
+            "catering": 1500000,
+            "av": 1000000
         },
-        "budget_spent": 46000,
+        "budget_spent": 4600000,
         "status": "at_risk",
         "timeline": []
     }
@@ -166,12 +166,12 @@ def seed_database():
         "name": "Music Festival",
         "date": "2027-05-20",
         "guest_count": 1000,
-        "budget_total": 120000,
+        "budget_total": 12000000,
         "budget_allocated": {
-            "venue": 50000,
-            "music/sound": 70000
+            "venue": 5000000,
+            "music/sound": 7000000
         },
-        "budget_spent": 50000,
+        "budget_spent": 5000000,
         "status": "on_track",
         "timeline": []
     }
@@ -186,7 +186,7 @@ def seed_database():
             "category": "catering",
             "name": "Saffron Table Catering",
             "status": "confirmed",
-            "quote": 9000,
+            "quote": 900000,
             "contact_log": []
         },
         {
@@ -195,7 +195,7 @@ def seed_database():
             "category": "venue",
             "name": "The Grand Hall",
             "status": "confirmed",
-            "quote": 4000,
+            "quote": 400000,
             "contact_log": []
         },
         {
@@ -204,7 +204,7 @@ def seed_database():
             "category": "photography",
             "name": "Lens & Light",
             "status": "confirmed",
-            "quote": 2000,
+            "quote": 200000,
             "contact_log": []
         },
         {
@@ -213,7 +213,7 @@ def seed_database():
             "category": "decoration",
             "name": "Floral Designs by Lily",
             "status": "confirmed",
-            "quote": 1100,
+            "quote": 110000,
             "contact_log": []
         },
         {
@@ -222,7 +222,7 @@ def seed_database():
             "category": "music/sound",
             "name": "DJ Beats",
             "status": "confirmed",
-            "quote": 900,
+            "quote": 90000,
             "contact_log": []
         },
         {
@@ -231,7 +231,7 @@ def seed_database():
             "category": "transportation",
             "name": "City Limos",
             "status": "confirmed",
-            "quote": 600,
+            "quote": 60000,
             "contact_log": []
         },
         {
@@ -240,7 +240,7 @@ def seed_database():
             "category": "av",
             "name": "TechAudio Corp",
             "status": "cancelled",
-            "quote": 10000,
+            "quote": 1000000,
             "contact_log": []
         },
         {
@@ -249,7 +249,7 @@ def seed_database():
             "category": "music/sound",
             "name": "MainStage Audio",
             "status": "confirmed",
-            "quote": 70000,
+            "quote": 7000000,
             "contact_log": []
         }
     ]

@@ -55,8 +55,9 @@ export const GlobalVendorsView = ({
 
         {isAdmin && (
           <button
+            type="button"
             onClick={onOpenCreateVendorModal}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-active text-white rounded-lg text-xs font-semibold uppercase tracking-wider transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] shrink-0"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0075de] hover:bg-[#005bab] text-white rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add Global Vendor</span>
