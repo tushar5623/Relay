@@ -164,7 +164,7 @@ export const GlobalVendorsView = ({
                       {canAssign ? (
                         <button
                           onClick={() => onOpenAssignModal(v)}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider text-primary bg-primary-light hover:bg-primary hover:text-white transition-all shadow-micro"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider text-white bg-[#0075de] hover:bg-[#005bab] transition-all shadow-micro active:scale-95 cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Assign to Event</span>
