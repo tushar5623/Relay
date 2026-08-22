@@ -54,7 +54,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
     setTimeout(() => {
       setSandboxStep(1);
       setIsSandboxSimulating(false);
-    }, 600);
+    }, 500);
   };
 
   const handleStartAgentNegotiation = () => {
@@ -62,7 +62,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
     setTimeout(() => {
       setSandboxStep(2);
       setIsSandboxSimulating(false);
-    }, 800);
+    }, 600);
   };
 
   const handleInjectSurgeGuests = () => {
@@ -70,7 +70,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
     setTimeout(() => {
       setSandboxStep(3);
       setIsSandboxSimulating(false);
-    }, 700);
+    }, 500);
   };
 
   const handleApprovePlan = () => {
@@ -78,7 +78,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
     setTimeout(() => {
       setSandboxStep(4);
       setIsSandboxSimulating(false);
-    }, 700);
+    }, 500);
   };
 
   const handleResetSandbox = () => {
@@ -329,7 +329,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               </span>
               <button
                 onClick={handleResetSandbox}
-                className="text-xs text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 px-2.5 py-1 rounded-md transition-colors font-mono flex items-center gap-1"
+                className="text-xs text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 px-2.5 py-1 rounded-md transition-colors font-mono flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset</span>
@@ -410,7 +410,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
             {/* Left Column: Event Live HUD (5 cols) */}
             <div className="lg:col-span-5 space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-hairline">
-                <h3 className="font-bold text-sm text-ink">Live Event Health HUD</h3>
+                <h3 className="font-bold text-sm text-gray-900">Live Event Health HUD</h3>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                   sandboxStep === 0 || sandboxStep === 4 
                     ? 'bg-[#edf9f0] text-[#1aae39] border border-green-200' 
@@ -423,8 +423,8 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               {/* Stat Boxes */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3.5 bg-canvas-soft rounded-xl border border-hairline">
-                  <div className="text-[11px] text-ink-muted font-medium">Guest Headcount</div>
-                  <div className="text-xl font-bold font-mono text-ink mt-0.5 flex items-center gap-1.5">
+                  <div className="text-[11px] text-gray-500 font-medium">Guest Headcount</div>
+                  <div className="text-xl font-bold font-mono text-gray-900 mt-0.5 flex items-center gap-1.5">
                     <span>{sandboxStep >= 3 ? '162 Guests' : '150 Guests'}</span>
                     {sandboxStep >= 3 && (
                       <span className="text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.2 rounded-full">
@@ -435,21 +435,21 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 </div>
 
                 <div className="p-3.5 bg-canvas-soft rounded-xl border border-hairline">
-                  <div className="text-[11px] text-ink-muted font-medium">Total Budget</div>
-                  <div className="text-xl font-bold font-mono text-ink mt-0.5">
+                  <div className="text-[11px] text-gray-500 font-medium">Total Budget</div>
+                  <div className="text-xl font-bold font-mono text-gray-900 mt-0.5">
                     ₹18,000
                   </div>
                 </div>
 
                 <div className="p-3.5 bg-canvas-soft rounded-xl border border-hairline">
-                  <div className="text-[11px] text-ink-muted font-medium">Spent / Committed</div>
-                  <div className="text-xl font-bold font-mono text-ink mt-0.5">
+                  <div className="text-[11px] text-gray-500 font-medium">Spent / Committed</div>
+                  <div className="text-xl font-bold font-mono text-gray-900 mt-0.5">
                     {sandboxStep === 0 ? '₹17,600' : sandboxStep === 1 ? '₹6,400 (Caterer lost)' : sandboxStep >= 2 && sandboxStep < 4 ? '₹18,550 (Est.)' : '₹17,950'}
                   </div>
                 </div>
 
                 <div className="p-3.5 bg-canvas-soft rounded-xl border border-hairline">
-                  <div className="text-[11px] text-ink-muted font-medium">Budget Buffer</div>
+                  <div className="text-[11px] text-gray-500 font-medium">Budget Buffer</div>
                   <div className={`text-xl font-bold font-mono mt-0.5 ${
                     sandboxStep === 3 ? 'text-amber-600' : 'text-[#1aae39]'
                   }`}>
@@ -485,7 +485,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
             </div>
 
             {/* Right Column: AI Live Reasoning Stream & Option Matrix (7 cols) */}
-            <div className="lg:col-span-7 bg-[#0c1435] text-white rounded-xl p-5 border border-[#213183] space-y-4 font-mono text-xs">
+            <div className="lg:col-span-7 bg-[#0c1435] text-white rounded-xl p-5 border border-[#213183] space-y-4 font-mono text-xs shadow-inner">
               
               {/* Telemetry Stream Header */}
               <div className="flex items-center justify-between border-b border-gray-700/60 pb-2.5">
@@ -540,73 +540,74 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 )}
               </div>
 
-              {/* Recovery Options Cards (Steps 2, 3, 4) */}
+              {/* Recovery Options Cards (Steps 2, 3, 4) — High-contrast dark glassmorphic cards */}
               {sandboxStep >= 2 && (
-                <div className="pt-2 border-t border-gray-700/60 font-sans space-y-2.5">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-gray-300">
-                    {sandboxStep >= 3 ? 'Rescoped Recovery Plan (162 Guests)' : 'Generated Recovery Plan (150 Guests)'}
+                <div className="pt-3 border-t border-gray-700/60 font-sans space-y-2.5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-gray-300 flex items-center justify-between">
+                    <span>{sandboxStep >= 3 ? 'Rescoped Recovery Plan (162 Guests)' : 'Generated Recovery Plan (150 Guests)'}</span>
+                    <span className="text-[10px] text-gray-400 font-normal">Click a plan to select</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-ink">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     
                     {/* Option A: Recommended */}
                     <div 
                       onClick={() => setSelectedVendorOption('opt_spice_route')}
-                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                      className={`p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
                         selectedVendorOption === 'opt_spice_route'
-                          ? 'bg-white border-[#0075de] ring-2 ring-[#0075de]/30'
-                          : 'bg-white/90 border-transparent opacity-85'
+                          ? 'bg-gradient-to-b from-[#0075de]/30 to-[#005bab]/20 border-[#0075de] ring-2 ring-[#0075de]/50 shadow-[0_0_16px_rgba(0,117,222,0.4)]'
+                          : 'bg-white/[0.06] hover:bg-white/[0.12] border-white/15'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-bold text-[#0075de] uppercase">Recommended</span>
-                        <span className="text-[10px] font-mono font-bold bg-green-100 text-green-800 px-1 rounded">Score: 98%</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-bold text-[#62aef0] uppercase tracking-wide">Recommended</span>
+                        <span className="text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded border border-emerald-500/30">98% Match</span>
                       </div>
-                      <div className="font-bold text-xs">Spice Route</div>
-                      <div className="text-xs font-mono font-extrabold text-ink mt-0.5">
+                      <div className="font-bold text-sm text-white">Spice Route</div>
+                      <div className="text-sm font-mono font-extrabold text-emerald-400 mt-1">
                         {sandboxStep >= 3 ? '₹11,550' : '₹10,700'}
                       </div>
-                      <div className="text-[10px] text-gray-500 mt-1">Balanced menu · 4hr prep</div>
+                      <div className="text-[11px] text-gray-300 mt-1 leading-snug">Balanced menu · 4hr prep</div>
                     </div>
 
                     {/* Option B: Premium */}
                     <div 
                       onClick={() => setSelectedVendorOption('opt_royal_feast')}
-                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                      className={`p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
                         selectedVendorOption === 'opt_royal_feast'
-                          ? 'bg-white border-[#0075de] ring-2 ring-[#0075de]/30'
-                          : 'bg-white/90 border-transparent opacity-85'
+                          ? 'bg-gradient-to-b from-[#d6b6f6]/25 to-[#391c57]/30 border-[#d6b6f6] ring-2 ring-[#d6b6f6]/50 shadow-[0_0_16px_rgba(214,182,246,0.3)]'
+                          : 'bg-white/[0.06] hover:bg-white/[0.12] border-white/15'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-bold text-purple-700 uppercase">Premium</span>
-                        <span className="text-[10px] font-mono font-bold bg-purple-100 text-purple-800 px-1 rounded">Score: 94%</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-bold text-[#d6b6f6] uppercase tracking-wide">Premium</span>
+                        <span className="text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded border border-purple-500/30">94% Match</span>
                       </div>
-                      <div className="font-bold text-xs">Royal Feast</div>
-                      <div className="text-xs font-mono font-extrabold text-ink mt-0.5">
+                      <div className="font-bold text-sm text-white">Royal Feast</div>
+                      <div className="text-sm font-mono font-extrabold text-purple-300 mt-1">
                         {sandboxStep >= 3 ? '₹12,400' : '₹11,500'}
                       </div>
-                      <div className="text-[10px] text-gray-500 mt-1">Luxury 5-course · Over budget</div>
+                      <div className="text-[11px] text-gray-300 mt-1 leading-snug">Luxury 5-course · Buffer test</div>
                     </div>
 
                     {/* Option C: Budget / Fast */}
                     <div 
                       onClick={() => setSelectedVendorOption('opt_grand_harvest')}
-                      className={`p-3 rounded-lg border transition-all cursor-pointer ${
+                      className={`p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
                         selectedVendorOption === 'opt_grand_harvest'
-                          ? 'bg-white border-[#0075de] ring-2 ring-[#0075de]/30'
-                          : 'bg-white/90 border-transparent opacity-85'
+                          ? 'bg-gradient-to-b from-[#dd5b00]/25 to-[#793400]/30 border-[#dd5b00] ring-2 ring-[#dd5b00]/50 shadow-[0_0_16px_rgba(221,91,0,0.3)]'
+                          : 'bg-white/[0.06] hover:bg-white/[0.12] border-white/15'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-bold text-amber-700 uppercase">Budget</span>
-                        <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 px-1 rounded">Score: 89%</span>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-[10px] font-bold text-[#fb923c] uppercase tracking-wide">Budget</span>
+                        <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30">89% Match</span>
                       </div>
-                      <div className="font-bold text-xs">Grand Harvest</div>
-                      <div className="text-xs font-mono font-extrabold text-ink mt-0.5">
+                      <div className="font-bold text-sm text-white">Grand Harvest</div>
+                      <div className="text-sm font-mono font-extrabold text-amber-300 mt-1">
                         {sandboxStep >= 3 ? '₹10,200' : '₹9,450'}
                       </div>
-                      <div className="text-[10px] text-gray-500 mt-1">Standard buffet · Max savings</div>
+                      <div className="text-[11px] text-gray-300 mt-1 leading-snug">Standard buffet · Max savings</div>
                     </div>
 
                   </div>
@@ -841,7 +842,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
           <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
             <button
               onClick={() => setActiveTourTab('graph')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 cursor-pointer ${
                 activeTourTab === 'graph'
                   ? 'bg-ink text-white shadow-micro'
                   : 'bg-canvas-soft text-ink-muted hover:text-ink'
@@ -853,7 +854,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
             <button
               onClick={() => setActiveTourTab('negotiator')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 cursor-pointer ${
                 activeTourTab === 'negotiator'
                   ? 'bg-ink text-white shadow-micro'
                   : 'bg-canvas-soft text-ink-muted hover:text-ink'
@@ -865,7 +866,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
             <button
               onClick={() => setActiveTourTab('rescope')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 cursor-pointer ${
                 activeTourTab === 'rescope'
                   ? 'bg-ink text-white shadow-micro'
                   : 'bg-canvas-soft text-ink-muted hover:text-ink'
@@ -877,7 +878,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
             <button
               onClick={() => setActiveTourTab('client')}
-              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 text-xs font-semibold rounded-full transition-all flex items-center gap-2 cursor-pointer ${
                 activeTourTab === 'client'
                   ? 'bg-ink text-white shadow-micro'
                   : 'bg-canvas-soft text-ink-muted hover:text-ink'
@@ -919,17 +920,17 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
                 <div className="bg-white p-5 rounded-xl border border-hairline shadow-micro space-y-3 font-sans">
                   <div className="flex justify-between items-center pb-2 border-b border-hairline">
-                    <span className="font-bold text-xs">Priya's Wedding — Command State</span>
+                    <span className="font-bold text-xs text-gray-900">Priya's Wedding — Command State</span>
                     <span className="text-[10px] bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-full">All Systems Nominal</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="p-2.5 bg-canvas-soft rounded-lg">
                       <div className="text-[10px] text-ink-muted">Confirmed RSVPs</div>
-                      <div className="font-bold font-mono text-sm">150 Guests</div>
+                      <div className="font-bold font-mono text-sm text-gray-900">150 Guests</div>
                     </div>
                     <div className="p-2.5 bg-canvas-soft rounded-lg">
                       <div className="text-[10px] text-ink-muted">Budget Utilization</div>
-                      <div className="font-bold font-mono text-sm">97.8% (₹17,600 / ₹18,000)</div>
+                      <div className="font-bold font-mono text-sm text-gray-900">97.8% (₹17,600 / ₹18,000)</div>
                     </div>
                   </div>
                   <div className="p-3 bg-blue-50/60 rounded-lg text-xs text-blue-900 border border-blue-100">
@@ -968,7 +969,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 <div className="bg-[#0c1435] text-white p-5 rounded-xl border border-[#213183] font-mono text-xs space-y-2">
                   <div className="text-[10px] text-gray-400 border-b border-gray-700 pb-1.5 flex justify-between">
                     <span>ws://localhost:8000/ws/evt_1</span>
-                    <span className="text-green-400">CONNECTED</span>
+                    <span className="text-green-400 font-bold">CONNECTED</span>
                   </div>
                   <div className="text-blue-300 text-[11px]">[agent.thought] Disruption impact verified. Finding replacement caterers...</div>
                   <div className="text-purple-300 text-[11px]">[agent.tool_call] vendor_repository.query(category='catering', min_rating=0.90)</div>
@@ -1005,20 +1006,20 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 </div>
 
                 <div className="bg-white p-5 rounded-xl border border-hairline shadow-micro space-y-2 text-xs">
-                  <div className="font-bold text-xs pb-1.5 border-b border-hairline flex justify-between">
+                  <div className="font-bold text-xs pb-1.5 border-b border-hairline flex justify-between text-gray-900">
                     <span>Global Vendor Roster</span>
                     <span className="text-[10px] text-ink-muted">14 Available in Mumbai / Pune</span>
                   </div>
                   <div className="p-2.5 bg-canvas-soft rounded-lg flex justify-between items-center">
                     <div>
-                      <div className="font-bold">Spice Route Catering</div>
+                      <div className="font-bold text-gray-900">Spice Route Catering</div>
                       <div className="text-[10px] text-ink-muted">Base Quote: ₹10,000 · 4.9 ★ Rating</div>
                     </div>
                     <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">98% Reliability</span>
                   </div>
                   <div className="p-2.5 bg-canvas-soft rounded-lg flex justify-between items-center">
                     <div>
-                      <div className="font-bold">Royal Feast Banquet</div>
+                      <div className="font-bold text-gray-900">Royal Feast Banquet</div>
                       <div className="text-[10px] text-ink-muted">Base Quote: ₹11,000 · 4.8 ★ Rating</div>
                     </div>
                     <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">94% Reliability</span>
@@ -1057,7 +1058,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                   <div className="flex items-center justify-between pb-2 border-b border-hairline">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded bg-primary text-white text-[10px] flex items-center justify-center font-bold">R</div>
-                      <span className="font-bold text-xs">Priya & Rohan's Wedding Portal</span>
+                      <span className="font-bold text-xs text-gray-900">Priya & Rohan's Wedding Portal</span>
                     </div>
                     <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Client View</span>
                   </div>
@@ -1068,7 +1069,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                   <div className="space-y-1.5 text-xs text-ink-secondary">
                     <div className="flex justify-between text-[11px]">
                       <span>Operations Progress</span>
-                      <span className="font-bold">100% Prepared</span>
+                      <span className="font-bold text-gray-900">100% Prepared</span>
                     </div>
                     <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                       <div className="bg-[#1aae39] h-full w-full rounded-full"></div>
@@ -1192,7 +1193,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               {/* Slider 1: Events per year */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-ink">Events Managed Per Year:</span>
+                  <span className="text-gray-900">Events Managed Per Year:</span>
                   <span className="font-mono text-primary text-sm font-extrabold">{eventsPerYear} Events</span>
                 </div>
                 <input
@@ -1213,7 +1214,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               {/* Slider 2: Average Budget */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-ink">Average Event Budget (₹ / $):</span>
+                  <span className="text-gray-900">Average Event Budget (₹ / $):</span>
                   <span className="font-mono text-primary text-sm font-extrabold">₹{avgBudget.toLocaleString()}</span>
                 </div>
                 <input
@@ -1235,7 +1236,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               {/* Slider 3: Crises per Event */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-ink">Average Vendor / Scope Surprises Per Event:</span>
+                  <span className="text-gray-900">Average Vendor / Scope Surprises Per Event:</span>
                   <span className="font-mono text-primary text-sm font-extrabold">{crisesPerEvent} Surprises</span>
                 </div>
                 <input
@@ -1271,7 +1272,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               <div className="pt-4 border-t border-hairline space-y-2 text-left text-xs">
                 <div className="flex justify-between">
                   <span className="text-ink-secondary">Crisis Hours Saved:</span>
-                  <span className="font-bold font-mono text-ink">{Math.round(hoursSavedPerYear)} Hours / Year</span>
+                  <span className="font-bold font-mono text-gray-900">{Math.round(hoursSavedPerYear)} Hours / Year</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-ink-secondary">Emergency Markup Prevented:</span>
@@ -1285,7 +1286,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
               <button
                 onClick={onLaunchApp}
-                className="w-full py-2.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold transition-all shadow-micro mt-2"
+                className="w-full py-2.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold transition-all shadow-micro mt-2 cursor-pointer"
               >
                 Claim Your Efficiency Gains
               </button>
@@ -1352,7 +1353,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
             <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
               <button
                 onClick={onLaunchApp}
-                className="px-6 py-3 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_4px_20px_rgba(0,117,222,0.4)]"
+                className="px-6 py-3 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_4px_20px_rgba(0,117,222,0.4)] cursor-pointer"
               >
                 Inspect Live Codebase & Architecture
               </button>
@@ -1427,7 +1428,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
               <button
                 onClick={onLaunchApp}
-                className="w-full py-2.5 rounded-full bg-white hover:bg-stone-50 border border-hairline text-ink text-xs font-bold transition-all shadow-micro"
+                className="w-full py-2.5 rounded-full bg-white hover:bg-stone-50 border border-hairline text-ink text-xs font-bold transition-all shadow-micro cursor-pointer"
               >
                 Launch Free Sandbox
               </button>
@@ -1468,7 +1469,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
               <button
                 onClick={onLaunchApp}
-                className="w-full py-2.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold transition-all shadow-micro"
+                className="w-full py-2.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold transition-all shadow-micro cursor-pointer"
               >
                 Start 14-Day Free Trial
               </button>
@@ -1517,7 +1518,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
               <button
                 onClick={onLaunchApp}
-                className="w-full py-2.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold transition-all shadow-[0_4px_14px_rgba(0,117,222,0.4)]"
+                className="w-full py-2.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-bold transition-all shadow-[0_4px_14px_rgba(0,117,222,0.4)] cursor-pointer"
               >
                 Upgrade to Agency Scale
               </button>
@@ -1711,7 +1712,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-bold text-sm text-ink hover:text-primary transition-colors"
+                  className="w-full px-6 py-4 text-left flex items-center justify-between gap-4 font-bold text-sm text-ink hover:text-primary transition-colors cursor-pointer"
                 >
                   <span>{faq.q}</span>
                   {openFaq === index ? (
@@ -1762,7 +1763,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
           <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={onLaunchApp}
-              className="px-8 py-3.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-sm font-bold tracking-wide transition-all shadow-[0_8px_32px_rgba(0,117,222,0.6)] hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="px-8 py-3.5 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-sm font-bold tracking-wide transition-all shadow-[0_8px_32px_rgba(0,117,222,0.6)] hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer"
             >
               <span>Launch Interactive Demo Now</span>
               <ArrowRight className="w-4 h-4" />
@@ -1770,7 +1771,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
 
             <button
               onClick={() => onOpenEvent ? onOpenEvent('evt_1') : onLaunchApp()}
-              className="px-6 py-3.5 rounded-full bg-white/[0.10] hover:bg-white/[0.18] text-white text-sm font-semibold tracking-wide border border-white/20 backdrop-blur-md transition-all flex items-center gap-2"
+              className="px-6 py-3.5 rounded-full bg-white/[0.10] hover:bg-white/[0.18] text-white text-sm font-semibold tracking-wide border border-white/20 backdrop-blur-md transition-all flex items-center gap-2 cursor-pointer"
             >
               <Terminal className="w-4 h-4 text-[#62aef0]" />
               <span>Inspect Priya's Wedding (evt_1)</span>
