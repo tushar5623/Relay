@@ -256,9 +256,9 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
             
             <div className="p-3">
               <div className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight font-mono">
-                ₹90L Cr
+                ~₹14,500 Cr
               </div>
-              <p className="text-xs text-ink-muted mt-1 font-medium">Global live event industry market size</p>
+              <p className="text-xs text-ink-muted mt-1 font-medium">India organised live-events market (2025)</p>
             </div>
 
             <div className="p-3 border-l border-hairline">
@@ -637,7 +637,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               Why traditional event tools fail when crisis strikes.
             </h2>
             <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
-              Every existing software in this ₹90 Lakh Crore market is a passive database. Relay is an active operational intelligence system.
+              Every existing software in this ~₹14,500 Crore market is a passive database. Relay is an active operational intelligence system.
             </p>
           </div>
 
@@ -1318,7 +1318,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 Why Relay will become a generational company.
               </h2>
               <p className="text-sm sm:text-base text-white/80 leading-relaxed max-w-2xl mx-auto">
-                We are building the autonomous operations network for the ₹90 Lakh Crore live event economy.
+                We are building the autonomous operations network for India's ~₹14,500 Crore organised live-events market.
               </p>
             </div>
 
