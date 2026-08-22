@@ -65,10 +65,7 @@ export const HeroBand = ({
       {/* 2. Geometric Dot Grid Texture */}
       <div className="absolute inset-0 opacity-[0.14] pointer-events-none bg-[radial-gradient(#ffffff_1.2px,transparent_1.2px)] [background-size:24px_24px]"></div>
 
-      {/* 3. Floating Holographic Brand Constellation */}
-      <div className="absolute top-6 right-8 opacity-25 pointer-events-none animate-float hidden lg:block">
-        <Sparkles className="w-20 h-20 text-[#62aef0]" />
-      </div>
+
 
       <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
         
