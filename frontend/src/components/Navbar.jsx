@@ -46,13 +46,13 @@ export const Navbar = ({
               onClick={() => onNavigate('portfolio')}
               className="flex items-center gap-2.5 cursor-pointer group select-none"
             >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-micro group-hover:bg-primary-active transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-[#0075de] flex items-center justify-center text-white shadow-micro group-hover:bg-[#005bab] transition-colors">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-base tracking-tight text-ink">Relay</span>
-                  <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.2 bg-primary-light text-primary rounded-full">
+                  <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.2 bg-[#e8f3fc] text-[#0075de] rounded-full">
                     AI Ops
                   </span>
                 </div>

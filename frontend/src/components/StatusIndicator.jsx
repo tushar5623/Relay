@@ -5,7 +5,7 @@ export const StatusIndicator = ({ status, size = 'sm' }) => {
   const normalized = (status || 'on_track').toLowerCase();
   
   let bg = 'bg-stone-100';
-  let text = 'text-ink-secondary';
+  let text = 'text-stone-700';
   let border = 'border-stone-200';
   let label = status ? status.replace(/_/g, ' ') : 'Unknown';
   let Icon = Clock;
@@ -16,9 +16,9 @@ export const StatusIndicator = ({ status, size = 'sm' }) => {
     case 'confirmed':
     case 'healthy':
     case 'executed':
-      bg = 'bg-sticker-green-bg';
-      text = 'text-sticker-green';
-      border = 'border-sticker-green/20';
+      bg = 'bg-[#edf9f0]';
+      text = 'text-[#16a34a]';
+      border = 'border-[#1aae39]/30';
       Icon = CheckCircle2;
       break;
 
@@ -26,9 +26,9 @@ export const StatusIndicator = ({ status, size = 'sm' }) => {
     case 'pending':
     case 'backup_candidate':
     case 'warning':
-      bg = 'bg-sticker-orange-bg';
-      text = 'text-sticker-orange';
-      border = 'border-sticker-orange/20';
+      bg = 'bg-[#fef3eb]';
+      text = 'text-[#dd5b00]';
+      border = 'border-[#dd5b00]/30';
       Icon = AlertTriangle;
       break;
 
@@ -36,15 +36,15 @@ export const StatusIndicator = ({ status, size = 'sm' }) => {
     case 'cancelled':
     case 'rejected':
     case 'failed':
-      bg = 'bg-sticker-red-bg';
-      text = 'text-sticker-red';
-      border = 'border-sticker-red/20';
+      bg = 'bg-[#fdf2f2]';
+      text = 'text-[#dc2626]';
+      border = 'border-[#e5484d]/30';
       Icon = XCircle;
       break;
 
     default:
       bg = 'bg-stone-100';
-      text = 'text-ink-muted';
+      text = 'text-stone-600';
       border = 'border-stone-200';
       Icon = Clock;
   }

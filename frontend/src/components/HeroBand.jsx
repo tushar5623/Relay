@@ -37,10 +37,10 @@ export const HeroBand = ({
     : 'Date not set';
 
   return (
-    <section className="relative overflow-hidden bg-secondary text-white rounded-2xl shadow-elevated border border-secondary-dark p-6 sm:p-8 my-6">
+    <section className="relative overflow-hidden bg-[#182250] bg-gradient-to-br from-[#141d47] via-[#1a265f] to-[#213183] text-white rounded-2xl shadow-elevated border border-[#2e3e8c]/60 p-6 sm:p-8 my-6">
       
       {/* Decorative Night Starfield & Constellation Effect */}
-      <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px]"></div>
+      <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px]"></div>
       
       {/* Floating subtle glowing stickers */}
       <div className="absolute top-4 right-12 opacity-20 pointer-events-none animate-float hidden lg:block">
@@ -80,7 +80,7 @@ export const HeroBand = ({
           <div className="flex flex-wrap items-center gap-2.5 pt-2">
             <button
               onClick={onSimulateDisruption}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary-active text-white text-xs font-semibold tracking-wide transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0075de] hover:bg-[#005bab] text-white text-xs font-semibold tracking-wide transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98]"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Simulate Disruption</span>
@@ -91,7 +91,7 @@ export const HeroBand = ({
               disabled={!isNegotiating}
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium border transition-all ${
                 isNegotiating 
-                  ? 'bg-white/10 hover:bg-white/20 text-white border-white/25 active:scale-[0.98]' 
+                  ? 'bg-white/15 hover:bg-white/25 text-white border-white/30 active:scale-[0.98]' 
                   : 'bg-white/5 text-white/40 border-white/10 cursor-not-allowed'
               }`}
               title={isNegotiating ? "Inject +12 RSVPs into active negotiation" : "Activate during AI recovery planning to test live rescope"}
@@ -102,9 +102,9 @@ export const HeroBand = ({
 
             <button
               onClick={onOpenDisruptionModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-medium border border-white/20 transition-all active:scale-[0.98]"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-medium border border-white/25 transition-all active:scale-[0.98]"
             >
-              <AlertTriangle className="w-3.5 h-3.5 text-sticker-orange" />
+              <AlertTriangle className="w-3.5 h-3.5 text-[#fb923c]" />
               <span>Report Issue</span>
             </button>
           </div>
@@ -114,42 +114,42 @@ export const HeroBand = ({
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 lg:w-80 shrink-0">
           
           {/* Guest Count Card */}
-          <div className={`p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15 transition-all duration-300 ${
-            guestCountAnimating ? 'ring-2 ring-sticker-sky bg-white/20 scale-105' : ''
+          <div className={`p-3.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 transition-all duration-300 ${
+            guestCountAnimating ? 'ring-2 ring-[#62aef0] bg-white/20 scale-105' : ''
           }`}>
-            <div className="flex items-center justify-between text-white/70 mb-1">
+            <div className="flex items-center justify-between text-white/80 mb-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider">Guests</span>
-              <Users className="w-3.5 h-3.5 text-sticker-sky" />
+              <Users className="w-3.5 h-3.5 text-[#62aef0]" />
             </div>
             <div className="text-xl font-bold font-mono text-white">
               {event.guest_count}
-              <span className="text-xs font-normal text-white/60 font-sans ml-1.5">
+              <span className="text-xs font-normal text-white/70 font-sans ml-1.5">
                 ({guests.length} RSVPs)
               </span>
             </div>
           </div>
 
           {/* Budget Health Card */}
-          <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
-            <div className="flex items-center justify-between text-white/70 mb-1">
+          <div className="p-3.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
+            <div className="flex items-center justify-between text-white/80 mb-1">
               <span className="text-[11px] font-semibold uppercase tracking-wider">Remaining</span>
-              <TrendingUp className={`w-3.5 h-3.5 ${isOverBudget ? 'text-sticker-red' : 'text-sticker-green'}`} />
+              <TrendingUp className={`w-3.5 h-3.5 ${isOverBudget ? 'text-[#f87171]' : 'text-[#4ade80]'}`} />
             </div>
-            <div className={`text-xl font-bold font-mono ${isOverBudget ? 'text-sticker-red' : 'text-sticker-green'}`}>
+            <div className={`text-xl font-bold font-mono ${isOverBudget ? 'text-[#f87171]' : 'text-[#4ade80]'}`}>
               ₹{budgetRemaining.toLocaleString()}
             </div>
           </div>
 
           {/* Budget Progress Meter */}
-          <div className="col-span-2 sm:col-span-1 lg:col-span-2 p-3.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/15">
-            <div className="flex justify-between items-center text-xs text-white/80 mb-1.5">
+          <div className="col-span-2 sm:col-span-1 lg:col-span-2 p-3.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
+            <div className="flex justify-between items-center text-xs text-white/90 mb-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-wider">Budget Spent</span>
               <span className="font-mono text-xs font-semibold">{percentSpent}% of ₹{budgetTotal.toLocaleString()}</span>
             </div>
             <div className="w-full bg-white/20 h-2 rounded-full overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${
-                  isOverBudget ? 'bg-sticker-red' : percentSpent > 85 ? 'bg-sticker-amber' : 'bg-primary'
+                  isOverBudget ? 'bg-[#ef4444]' : percentSpent > 85 ? 'bg-[#f59e0b]' : 'bg-[#0075de]'
                 }`}
                 style={{ width: `${Math.min(percentSpent, 100)}%` }}
               ></div>
