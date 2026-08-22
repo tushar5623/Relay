@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Users, 
-  DollarSign, 
+  IndianRupee, 
   TrendingUp, 
   Wallet, 
   Edit3, 
@@ -64,7 +64,7 @@ export const EventOverview = ({
           <div className="flex justify-between items-start mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Total Budget</span>
             <div className="p-2 rounded-lg bg-primary-light text-primary">
-              <DollarSign className="w-4 h-4" />
+              <IndianRupee className="w-4 h-4" />
             </div>
           </div>
           <div className="text-3xl font-bold font-mono text-ink">

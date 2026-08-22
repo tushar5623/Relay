@@ -32,7 +32,7 @@ import {
   ArrowUpRight,
   TrendingUp,
   Calendar,
-  DollarSign,
+  IndianRupee,
   HeartHandshake,
   Workflow
 } from 'lucide-react';
@@ -91,14 +91,14 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
   const [activeTourTab, setActiveTourTab] = useState('graph'); // 'graph', 'negotiator', 'rescope', 'client'
 
   // ─── 3. INTERACTIVE ROI CALCULATOR STATE ───
-  const [eventsPerYear, setEventsPerYear] = useState(18);
-  const [avgBudget, setAvgBudget] = useState(45000);
+  const [eventsPerYear, setEventsPerYear] = useState(12);
+  const [avgBudget, setAvgBudget] = useState(1800000);
   const [crisesPerEvent, setCrisesPerEvent] = useState(2);
 
   // Derived ROI calculations
   const hoursSavedPerYear = eventsPerYear * crisesPerEvent * 5.5; // ~5.5 hrs saved per crisis
   const emergencyLossPrevented = Math.round(eventsPerYear * avgBudget * 0.082); // ~8.2% budget leakage prevented
-  const estimatedAnnualValue = Math.round(emergencyLossPrevented + (hoursSavedPerYear * 75)); // $75/hr planner value
+  const estimatedAnnualValue = Math.round(emergencyLossPrevented + (hoursSavedPerYear * 2000)); // ₹2,000/hr planner value
 
   // ─── 4. FAQ ACCORDION STATE ───
   const [openFaq, setOpenFaq] = useState(0);
@@ -256,7 +256,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
             
             <div className="p-3">
               <div className="text-3xl sm:text-4xl font-extrabold text-ink tracking-tight font-mono">
-                $1.1T
+                ₹90L Cr
               </div>
               <p className="text-xs text-ink-muted mt-1 font-medium">Global live event industry market size</p>
             </div>
@@ -437,14 +437,14 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 <div className="p-3.5 bg-canvas-soft rounded-xl border border-hairline">
                   <div className="text-[11px] text-gray-500 font-medium">Total Budget</div>
                   <div className="text-xl font-bold font-mono text-gray-900 mt-0.5">
-                    ₹18,000
+                    ₹18,00,000
                   </div>
                 </div>
 
                 <div className="p-3.5 bg-canvas-soft rounded-xl border border-hairline">
                   <div className="text-[11px] text-gray-500 font-medium">Spent / Committed</div>
                   <div className="text-xl font-bold font-mono text-gray-900 mt-0.5">
-                    {sandboxStep === 0 ? '₹17,600' : sandboxStep === 1 ? '₹6,400 (Caterer lost)' : sandboxStep >= 2 && sandboxStep < 4 ? '₹18,550 (Est.)' : '₹17,950'}
+                    {sandboxStep === 0 ? '₹17,60,000' : sandboxStep === 1 ? '₹8,60,000 (Caterer lost)' : sandboxStep >= 2 && sandboxStep < 4 ? '₹18,55,000 (Est.)' : '₹17,95,000'}
                   </div>
                 </div>
 
@@ -453,7 +453,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                   <div className={`text-xl font-bold font-mono mt-0.5 ${
                     sandboxStep === 3 ? 'text-amber-600' : 'text-[#1aae39]'
                   }`}>
-                    {sandboxStep === 0 ? '+₹400' : sandboxStep === 1 ? '+₹11,600' : sandboxStep === 3 ? '-₹550' : '+₹50'}
+                    {sandboxStep === 0 ? '+₹40,000' : sandboxStep === 1 ? '+₹9,40,000' : sandboxStep === 3 ? '-₹55,000' : '+₹5,000'}
                   </div>
                 </div>
               </div>
@@ -478,7 +478,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                     <span>Recovery Executed & Locked</span>
                   </div>
                   <p className="text-[11px] text-green-700 leading-relaxed pl-6">
-                    Spice Route Catering assigned for 162 guests at ₹11,550. Event budget preserved within safe envelope.
+                    Spice Route Catering assigned for 162 guests at ₹11,55,000. Event budget preserved within safe envelope.
                   </p>
                 </div>
               )}
@@ -513,7 +513,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                   <div className="space-y-1 text-[11px]">
                     <div className="text-rose-400">[00:01] ⚡ EVENT DISRUPTION: Vendor ven_catering_1 status changed to CANCELLED.</div>
                     <div className="text-blue-300">[00:02] 📊 DETERMINISTIC ENGINE: Running BFS impact analysis across dependency graph...</div>
-                    <div className="text-gray-300">[00:03] ↳ Affected: guest_meals (150), dinner_schedule (19:30), budget_spent (-₹11,200).</div>
+                    <div className="text-gray-300">[00:03] ↳ Affected: guest_meals (150), dinner_schedule (19:30), budget_spent (-₹9,00,000).</div>
                   </div>
                 )}
 
@@ -565,7 +565,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                       </div>
                       <div className="font-bold text-sm text-white">Spice Route</div>
                       <div className="text-sm font-mono font-extrabold text-emerald-400 mt-1">
-                        {sandboxStep >= 3 ? '₹11,550' : '₹10,700'}
+                        {sandboxStep >= 3 ? '₹11,55,000' : '₹10,70,000'}
                       </div>
                       <div className="text-[11px] text-gray-300 mt-1 leading-snug">Balanced menu · 4hr prep</div>
                     </div>
@@ -585,7 +585,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                       </div>
                       <div className="font-bold text-sm text-white">Royal Feast</div>
                       <div className="text-sm font-mono font-extrabold text-purple-300 mt-1">
-                        {sandboxStep >= 3 ? '₹12,400' : '₹11,500'}
+                        {sandboxStep >= 3 ? '₹12,40,000' : '₹11,50,000'}
                       </div>
                       <div className="text-[11px] text-gray-300 mt-1 leading-snug">Luxury 5-course · Buffer test</div>
                     </div>
@@ -605,7 +605,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                       </div>
                       <div className="font-bold text-sm text-white">Grand Harvest</div>
                       <div className="text-sm font-mono font-extrabold text-amber-300 mt-1">
-                        {sandboxStep >= 3 ? '₹10,200' : '₹9,450'}
+                        {sandboxStep >= 3 ? '₹10,20,000' : '₹9,45,000'}
                       </div>
                       <div className="text-[11px] text-gray-300 mt-1 leading-snug">Standard buffet · Max savings</div>
                     </div>
@@ -637,7 +637,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               Why traditional event tools fail when crisis strikes.
             </h2>
             <p className="text-sm sm:text-base text-ink-muted leading-relaxed">
-              Every existing software in this $1.1T market is a passive database. Relay is an active operational intelligence system.
+              Every existing software in this ₹90 Lakh Crore market is a passive database. Relay is an active operational intelligence system.
             </p>
           </div>
 
@@ -1174,7 +1174,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
           
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-canvas-soft border border-hairline text-ink-muted text-xs font-semibold">
-              <DollarSign className="w-3.5 h-3.5 text-primary" />
+              <IndianRupee className="w-3.5 h-3.5 text-primary" />
               <span>Interactive Business Value</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
@@ -1214,22 +1214,22 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
               {/* Slider 2: Average Budget */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-gray-900">Average Event Budget (₹ / $):</span>
+                  <span className="text-gray-900">Average Event Budget (₹):</span>
                   <span className="font-mono text-primary text-sm font-extrabold">₹{avgBudget.toLocaleString()}</span>
                 </div>
                 <input
                   type="range"
-                  min="10000"
-                  max="200000"
-                  step="5000"
+                  min="500000"
+                  max="10000000"
+                  step="250000"
                   value={avgBudget}
                   onChange={(e) => setAvgBudget(Number(e.target.value))}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#0075de]"
                 />
                 <div className="flex justify-between text-[10px] text-ink-muted">
-                  <span>₹10,000 (Small)</span>
-                  <span>₹100,000 (Medium)</span>
-                  <span>₹200,000+ (Luxury)</span>
+                  <span>₹5,00,000 (Small/Boutique)</span>
+                  <span>₹25,00,000 (Medium/Grand)</span>
+                  <span>₹1,00,00,000+ (High-End Mega)</span>
                 </div>
               </div>
 
@@ -1318,7 +1318,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 Why Relay will become a generational company.
               </h2>
               <p className="text-sm sm:text-base text-white/80 leading-relaxed max-w-2xl mx-auto">
-                We are building the autonomous operations network for the $1.1 Trillion live event economy.
+                We are building the autonomous operations network for the ₹90 Lakh Crore live event economy.
               </p>
             </div>
 
@@ -1344,7 +1344,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#ff64c8]">3. Marketplace Take-Rate</span>
                 <h3 className="font-bold text-base text-white">SaaS + Commerce Network</h3>
                 <p className="text-xs text-white/70 leading-relaxed">
-                  We capture predictable monthly software subscription revenue ($149–$499/mo) plus a 1.5% to 3.0% transaction fee on all automated emergency vendor contract fulfillment.
+                  We capture predictable monthly software subscription revenue (₹11,999–₹39,999/mo) plus a 1.5% to 3.0% transaction fee on all automated emergency vendor contract fulfillment.
                 </p>
               </div>
 
@@ -1380,7 +1380,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
           
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-canvas-soft border border-hairline text-ink-muted text-xs font-semibold">
-              <DollarSign className="w-3.5 h-3.5 text-primary" />
+              <IndianRupee className="w-3.5 h-3.5 text-primary" />
               <span>Transparent Pricing</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-ink">
@@ -1404,7 +1404,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                   <p className="text-xs text-ink-muted mt-1">Test the deterministic engine and simulation sandbox.</p>
                 </div>
                 <div className="text-3xl font-extrabold text-ink font-mono">
-                  $0 <span className="text-xs text-ink-muted font-sans font-normal">/ forever</span>
+                  ₹0 <span className="text-xs text-ink-muted font-sans font-normal">/ forever</span>
                 </div>
                 <ul className="space-y-2.5 text-xs text-ink-secondary pt-2 border-t border-hairline">
                   <li className="flex items-center gap-2">
@@ -1445,7 +1445,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                   <p className="text-xs text-ink-muted mt-1">For independent coordinators managing high-end weddings.</p>
                 </div>
                 <div className="text-3xl font-extrabold text-ink font-mono">
-                  $149 <span className="text-xs text-ink-muted font-sans font-normal">/ month</span>
+                  ₹11,999 <span className="text-xs text-ink-muted font-sans font-normal">/ month</span>
                 </div>
                 <ul className="space-y-2.5 text-xs text-ink-secondary pt-2 border-t border-hairline">
                   <li className="flex items-center gap-2">
@@ -1490,7 +1490,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
                   <p className="text-xs text-gray-400 mt-1">For multi-planner production companies & venues.</p>
                 </div>
                 <div className="text-3xl font-extrabold text-white font-mono">
-                  $499 <span className="text-xs text-gray-400 font-sans font-normal">/ month</span>
+                  ₹39,999 <span className="text-xs text-gray-400 font-sans font-normal">/ month</span>
                 </div>
                 <ul className="space-y-2.5 text-xs text-gray-300 pt-2 border-t border-gray-800">
                   <li className="flex items-center gap-2">
@@ -1752,7 +1752,7 @@ export function LandingPage({ onLaunchApp, onOpenEvent }) {
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Ready to run multi-million dollar events <br className="hidden sm:block" />
+            Ready to run high-stakes, multi-crore events <br className="hidden sm:block" />
             with complete autonomous peace of mind?
           </h2>
 

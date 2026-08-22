@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Calendar, 
-  DollarSign, 
+  IndianRupee, 
   AlertTriangle, 
   ArrowRight, 
   Search, 
@@ -230,7 +230,7 @@ export const PortfolioView = ({
 
                   <div className="flex justify-between items-center py-1 border-b border-hairline">
                     <span className="text-ink-muted flex items-center gap-1.5">
-                      <DollarSign className="w-3.5 h-3.5" /> Value at Stake
+                      <IndianRupee className="w-3.5 h-3.5" /> Value at Stake
                     </span>
                     <span className="font-mono font-semibold text-ink">₹{(evt.budget_total || 0).toLocaleString()}</span>
                   </div>

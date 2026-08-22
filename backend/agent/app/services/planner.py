@@ -28,7 +28,7 @@ DISRUPTION:
 {json.dumps(disruption, indent=2)}
 
 You must evaluate the `active_quotes` provided in the CURRENT EVENT STATE if they exist.
-If the preferred option exceeds the remaining budget, you MUST surface a concrete tradeoff in the option description or recommendation reason. For example: "Selecting Willow & Vine requires reducing another planned expense by $X."
+If the preferred option exceeds the remaining budget, you MUST surface a concrete tradeoff in the option description or recommendation reason. For example: "Selecting Willow & Vine requires reducing another planned expense by ₹X."
 
 Provide your response strictly following the requested JSON schema. Include at least two recovery options.
 """

@@ -11,7 +11,7 @@ import {
   X, 
   Bot, 
   Cpu, 
-  DollarSign, 
+  IndianRupee, 
   Clock,
   ThumbsUp,
   FileCheck

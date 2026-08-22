@@ -12,8 +12,8 @@ import {
 } from 'lucide-react';
 
 const SAMPLE_CSV = {
-  budget: `category,allocated_budget\ncatering,12000\nvenue,6000\nphotography,3000\nmusic/sound,1500`,
-  vendors: `name,category,quote,status\nRoyal Feast Catering,catering,11500,confirmed\nApex Lighting & AV,music/sound,1400,confirmed\nStarlight Photos,photography,2800,backup_candidate`,
+  budget: `category,allocated_budget\ncatering,900000\nvenue,400000\nphotography,200000\nmusic/sound,90000\ndecoration,110000\ntransportation,60000`,
+  vendors: `name,category,quote,status\nRoyal Feast Catering,catering,1150000,confirmed\nApex Lighting & AV,music/sound,95000,confirmed\nStarlight Photos,photography,190000,backup_candidate`,
   timeline: `id,time,block,dependencies\nt1,13:00,Vendor Early Setup,\nt2,15:30,VIP Reception,t1\nt3,17:00,Main Keynote,t2\nt4,19:30,Gala Dinner,t3`
 };
 

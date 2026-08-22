@@ -67,7 +67,7 @@ async function createAndExecuteDecision(eventId, optionId, disruption, optionDat
         if (optionId.startsWith('opt_') || optionId === 'replace_catering') {
             // ACTION A — REPLACE CATERING DYNAMICALLY
             const vendorName = (optionData && optionData.title) ? optionData.title : 'Backup Catering Co.';
-            const vendorQuote = (optionData && optionData.estimated_cost_change) ? optionData.estimated_cost_change : 9000;
+            const vendorQuote = (optionData && optionData.estimated_cost_change) ? Math.abs(optionData.estimated_cost_change) : (optionData && optionData.quote) ? optionData.quote : 900000;
             vendorQuoteToLog = vendorQuote;
             
             const isLegacyTest = optionId === 'replace_catering';
