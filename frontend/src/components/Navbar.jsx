@@ -43,7 +43,7 @@ export const Navbar = ({
           {/* Left Brand & View Navigation */}
           <div className="flex items-center gap-6">
             <div 
-              onClick={() => onNavigate('portfolio')}
+              onClick={() => onNavigate('landing')}
               className="flex items-center gap-2.5 cursor-pointer group select-none"
             >
               <div className="w-8 h-8 rounded-lg bg-[#0075de] flex items-center justify-center text-white shadow-micro group-hover:bg-[#005bab] transition-colors">
@@ -62,6 +62,18 @@ export const Navbar = ({
 
             {/* View Switcher Pills */}
             <nav className="hidden md:flex items-center gap-1.5 pl-4 border-l border-hairline">
+              <button
+                onClick={() => onNavigate('landing')}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  currentView === 'landing'
+                    ? 'bg-canvas-soft text-ink font-semibold shadow-micro'
+                    : 'text-ink-muted hover:text-ink hover:bg-stone-50'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span>Overview</span>
+              </button>
+
               <button
                 onClick={() => onNavigate('portfolio')}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${

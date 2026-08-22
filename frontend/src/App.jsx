@@ -37,6 +37,7 @@ import {
   AssignGlobalVendorModal 
 } from './components/Modals';
 import { Toast } from './components/Toast';
+import { LandingPage } from './components/LandingPage';
 
 const USERS = [
   { id: 'usr_1', name: 'Alice Planner', role: 'planner' },
@@ -47,7 +48,7 @@ const USERS = [
 export function App() {
   const defaultUserId = localStorage.getItem('relay_active_user') || 'usr_1';
   const [currentUser, setCurrentUser] = useState(USERS.find(u => u.id === defaultUserId) || USERS[0]);
-  const [currentView, setCurrentView] = useState('portfolio'); // 'portfolio', 'event', 'global_vendors', 'client_status'
+  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'portfolio', 'event', 'global_vendors', 'client_status'
   const [activeEventId, setActiveEventId] = useState(null);
 
   // Global toast state
@@ -138,8 +139,11 @@ export function App() {
         const eventId = params.get('eventId');
         setCurrentView('global_vendors');
         setActiveEventId(eventId || null);
-      } else {
+      } else if (path === '/portfolio') {
         setCurrentView('portfolio');
+        setActiveEventId(null);
+      } else {
+        setCurrentView('landing');
         setActiveEventId(null);
       }
     };
@@ -162,8 +166,10 @@ export function App() {
       } else {
         window.history.pushState({}, '', `/global_vendors`);
       }
-    } else {
+    } else if (view === 'portfolio') {
       window.history.pushState({}, '', `/portfolio`);
+    } else {
+      window.history.pushState({}, '', `/`);
     }
   };
 
@@ -570,6 +576,16 @@ export function App() {
       alert(err.message);
     }
   };
+
+  // Landing page route
+  if (currentView === 'landing') {
+    return (
+      <LandingPage 
+        onLaunchApp={() => navigateTo('portfolio')} 
+        onOpenEvent={(id) => navigateTo('event', id || 'evt_1')} 
+      />
+    );
+  }
 
   // Client status view route
   if (currentView === 'client_status') {
