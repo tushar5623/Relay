@@ -56,9 +56,10 @@ export const AgentTelemetry = ({
           
           {hasDisruptions && !recoveryPlan && !negotiationActive && (
             <button
+              type="button"
               onClick={onGeneratePlan}
               disabled={generatingPlan}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary hover:bg-primary-active text-white text-xs font-semibold tracking-wide transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#0075de] to-[#005bab] hover:from-[#0085fc] hover:to-[#006bd1] text-white text-xs font-bold tracking-wide transition-all shadow-[0_2px_12px_rgba(0,117,222,0.35)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
               <Sparkles className={`w-3.5 h-3.5 ${generatingPlan ? 'animate-spin' : ''}`} />
               <span>{generatingPlan ? 'Synthesizing Plan...' : 'Generate Recovery Plan'}</span>
@@ -78,12 +79,12 @@ export const AgentTelemetry = ({
                   className={`p-4 rounded-xl border transition-all ${
                     isResolved 
                       ? 'bg-sticker-green-bg/50 border-sticker-green/20' 
-                      : 'bg-sticker-orange-bg border-sticker-orange/30'
+                      : 'bg-[#fef3eb] border-[#dd5b00]/30'
                   }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-start gap-2.5">
-                      <div className={`mt-0.5 p-1 rounded-full ${isResolved ? 'bg-sticker-green text-white' : 'bg-sticker-orange text-white'}`}>
+                      <div className={`mt-0.5 p-1 rounded-full ${isResolved ? 'bg-[#1aae39] text-white' : 'bg-[#dd5b00] text-white'}`}>
                         {isResolved ? <Check className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
                       </div>
                       <div>
@@ -91,7 +92,7 @@ export const AgentTelemetry = ({
                           <span className="text-xs font-bold uppercase tracking-wider text-ink">
                             Vendor Disruption
                           </span>
-                          <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-white text-sticker-orange border border-sticker-orange/30">
+                          <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-white text-[#dd5b00] border border-[#dd5b00]/30 font-mono">
                             {v.category}
                           </span>
                         </div>
@@ -103,11 +104,20 @@ export const AgentTelemetry = ({
 
                     <div className="shrink-0 text-right">
                       {isResolved ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sticker-green uppercase tracking-wider bg-white px-2.5 py-1 rounded-full border border-sticker-green/20">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1aae39] uppercase tracking-wider bg-white px-2.5 py-1 rounded-full border border-green-200 shadow-micro">
                           <CheckCircle2 className="w-3.5 h-3.5" /> Resolved
                         </span>
+                      ) : !recoveryPlan && !negotiationActive ? (
+                        <button
+                          type="button"
+                          onClick={onGeneratePlan}
+                          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white uppercase tracking-wider bg-gradient-to-r from-[#dd5b00] to-[#dd5b00]/90 hover:from-orange-600 hover:to-orange-700 px-3 py-1.5 rounded-full shadow-micro hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                          title="Trigger AI Recovery Plan for this disruption"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" /> Action Required
+                        </button>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sticker-orange uppercase tracking-wider bg-white px-2.5 py-1 rounded-full border border-sticker-orange/20">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#dd5b00] uppercase tracking-wider bg-white px-2.5 py-1 rounded-full border border-[#dd5b00]/30 shadow-micro">
                           <Clock className="w-3.5 h-3.5" /> Action Required
                         </span>
                       )}
@@ -282,7 +292,7 @@ export const AgentTelemetry = ({
                   </div>
 
                   {/* Approve & Execute Action Button */}
-                  <div className="pt-3.5 border-t border-hairline flex items-center justify-between">
+                  <div className="pt-3.5 border-t border-hairline flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div className="text-[11px] text-ink-muted">
                       {isPlanner ? (
                         <span className="text-sticker-orange font-medium flex items-center gap-1">
@@ -294,17 +304,18 @@ export const AgentTelemetry = ({
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => onApproveAndExecute(opt)}
                       disabled={executingOptionId !== null || isPlanner}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all shadow-micro ${
+                      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-micro ${
                         isRecommended
-                          ? 'bg-primary text-white hover:bg-primary-active active:scale-95'
-                          : 'bg-ink text-white hover:bg-ink-secondary active:scale-95'
-                      } disabled:opacity-40 disabled:cursor-not-allowed`}
+                          ? 'bg-gradient-to-r from-[#0075de] to-[#005bab] hover:from-[#0085fc] hover:to-[#006bd1] text-white shadow-[0_2px_12px_rgba(0,117,222,0.35)] active:scale-95'
+                          : 'bg-stone-900 text-white hover:bg-stone-800 active:scale-95'
+                      } disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer`}
                     >
                       {isExecuting ? (
                         <>
-                          <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                          <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                           <span>Executing...</span>
                         </>
                       ) : (

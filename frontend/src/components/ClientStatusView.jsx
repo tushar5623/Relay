@@ -50,8 +50,9 @@ export const ClientStatusView = ({ eventId, onBack }) => {
         <p className="text-xs text-sticker-red mb-6 max-w-sm">{error}</p>
         {onBack && (
           <button
+            type="button"
             onClick={onBack}
-            className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-active rounded-lg transition-colors shadow-micro"
+            className="px-4 py-2 text-xs font-bold text-white bg-[#0075de] hover:bg-[#005bab] rounded-lg transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             Return to Dashboard
           </button>

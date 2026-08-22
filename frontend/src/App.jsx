@@ -663,8 +663,9 @@ export function App() {
                 <p className="text-sm font-bold text-sticker-red mb-2">Access Error</p>
                 <p className="text-xs text-ink-muted mb-4">{error}</p>
                 <button
+                  type="button"
                   onClick={() => navigateTo('portfolio')}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-active rounded-lg transition-colors shadow-micro"
+                  className="px-4 py-2 text-xs font-bold text-white bg-[#0075de] hover:bg-[#005bab] rounded-lg transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                 >
                   Return to Portfolio
                 </button>

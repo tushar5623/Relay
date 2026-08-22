@@ -8,8 +8,8 @@ router.use(requireEventAccess);
 
 router.get('/:vendorId', vendorController.getVendor);
 router.get('/:vendorId/availability', vendorController.getAvailability);
-router.patch('/:vendorId/status', requireRole(['approver', 'admin']), vendorController.updateStatus);
-router.patch('/:vendorId/quote', requireRole(['approver', 'admin']), vendorController.updateQuote);
+router.patch('/:vendorId/status', requireRole(['planner', 'approver', 'admin']), vendorController.updateStatus);
+router.patch('/:vendorId/quote', requireRole(['planner', 'approver', 'admin']), vendorController.updateQuote);
 router.post('/:vendorId/cancel', vendorController.cancelVendor);
 
 module.exports = router;

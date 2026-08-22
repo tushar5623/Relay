@@ -1,5 +1,7 @@
 const eventService = require('../services/eventService');
 const { exec } = require('child_process');
+const path = require('path');
+const fs = require('fs');
 const csv = require('csv-parse/sync');
 const { getDb } = require('../db/connection');
 
@@ -96,10 +98,19 @@ async function incrementHeadcount(req, res) {
 
 async function resetDemo(req, res) {
     try {
-        exec('python seed.py', { cwd: '../db' }, (error, stdout, stderr) => {
+        const venvPython = path.resolve(__dirname, '../../../../.venv/bin/python');
+        const dbDir = path.resolve(__dirname, '../../../db');
+        let pythonCmd = 'python3';
+        if (fs.existsSync(venvPython)) {
+            pythonCmd = venvPython;
+        } else if (process.platform === 'win32') {
+            pythonCmd = 'python';
+        }
+
+        exec(`"${pythonCmd}" seed.py`, { cwd: dbDir }, (error, stdout, stderr) => {
             if (error) {
-                console.error("Reset script failed:", error);
-                return res.status(500).json({ error: error.message });
+                console.error("Reset script failed:", error, stderr);
+                return res.status(500).json({ error: error.message, stderr });
             }
             res.json({ message: 'Demo reset successfully' });
         });

@@ -74,8 +74,9 @@ export const EventOverview = ({
             <span>Approved allocation</span>
             {isAdmin && !editingBudget && (
               <button
+                type="button"
                 onClick={() => setEditingBudget(true)}
-                className="text-[11px] font-semibold text-primary hover:text-primary-active underline"
+                className="text-[11px] font-bold text-[#0075de] hover:text-[#005bab] underline cursor-pointer"
               >
                 Edit
               </button>
@@ -123,10 +124,10 @@ export const EventOverview = ({
 
       {/* Budget Edit Modal / In-line Form */}
       {editingBudget && (
-        <div className="bg-white border border-primary/40 ring-2 ring-primary/15 rounded-xl p-5 shadow-card animate-in fade-in duration-150">
+        <div className="bg-white border border-[#0075de]/40 ring-2 ring-[#0075de]/15 rounded-xl p-5 shadow-card animate-in fade-in duration-150">
           <div className="flex justify-between items-center mb-4">
             <h4 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
-              <Edit3 className="w-4 h-4 text-primary" />
+              <Edit3 className="w-4 h-4 text-[#0075de]" />
               <span>Modify Event Budget Allocation</span>
             </h4>
             <span className="text-xs text-ink-muted font-medium">Admin Role Active</span>
@@ -142,7 +143,7 @@ export const EventOverview = ({
                   type="number"
                   value={budgetForm.budget_total}
                   onChange={e => setBudgetForm({ ...budgetForm, budget_total: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-ink bg-canvas-soft border border-hairline rounded-lg font-mono focus:outline-none focus:border-primary focus:bg-white transition-all shadow-micro"
+                  className="w-full px-3 py-2 text-sm text-ink bg-canvas-soft border border-hairline rounded-lg font-mono focus:outline-none focus:border-[#0075de] focus:bg-white transition-all shadow-micro"
                   required
                 />
               </div>
@@ -155,7 +156,7 @@ export const EventOverview = ({
                   type="number"
                   value={budgetForm.budget_spent}
                   onChange={e => setBudgetForm({ ...budgetForm, budget_spent: e.target.value })}
-                  className="w-full px-3 py-2 text-sm text-ink bg-canvas-soft border border-hairline rounded-lg font-mono focus:outline-none focus:border-primary focus:bg-white transition-all shadow-micro"
+                  className="w-full px-3 py-2 text-sm text-ink bg-canvas-soft border border-hairline rounded-lg font-mono focus:outline-none focus:border-[#0075de] focus:bg-white transition-all shadow-micro"
                   required
                 />
               </div>
@@ -169,13 +170,13 @@ export const EventOverview = ({
               <button
                 type="button"
                 onClick={() => setEditingBudget(false)}
-                className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink bg-canvas-soft rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-ink-secondary bg-white hover:bg-stone-100 border border-hairline rounded-lg transition-colors shadow-micro cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-active rounded-lg transition-colors shadow-micro"
+                className="px-5 py-2 text-xs font-bold text-white bg-[#0075de] hover:bg-[#005bab] rounded-lg transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
               >
                 Save Budget
               </button>

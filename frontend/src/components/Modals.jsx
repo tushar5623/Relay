@@ -123,13 +123,13 @@ export const ReportDisruptionModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink bg-canvas-soft rounded-lg transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-ink-secondary bg-white hover:bg-stone-100 border border-hairline rounded-lg transition-colors shadow-micro cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-sticker-red hover:bg-sticker-red/90 rounded-lg transition-all shadow-micro"
+              className="px-5 py-2 text-xs font-bold text-white bg-[#e5484d] hover:bg-red-700 rounded-lg transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               Submit & Trigger AI Response
             </button>
@@ -161,11 +161,11 @@ export const ImportDataModal = ({
       <div className="bg-white border border-hairline rounded-2xl shadow-modal w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-150">
         
         <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas-soft">
-          <div className="flex items-center gap-2 text-primary">
+          <div className="flex items-center gap-2 text-[#0075de]">
             <UploadCloud className="w-4 h-4" />
             <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Import Operational Data</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-stone-200/60 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-stone-200/60 transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -178,7 +178,7 @@ export const ImportDataModal = ({
             <button
               type="button"
               onClick={handleApplySample}
-              className="text-[11px] font-semibold text-primary hover:text-primary-active underline flex items-center gap-1"
+              className="text-[11px] font-bold text-[#0075de] hover:text-[#005bab] underline flex items-center gap-1 cursor-pointer"
             >
               <Sparkles className="w-3 h-3" /> Load Sample CSV
             </button>
@@ -190,10 +190,10 @@ export const ImportDataModal = ({
                 key={d}
                 type="button"
                 onClick={() => setForm({ ...form, domain: d })}
-                className={`py-2 rounded-lg text-xs font-semibold capitalize border transition-all ${
+                className={`py-2 rounded-lg text-xs font-bold capitalize border transition-all cursor-pointer ${
                   form.domain === d
-                    ? 'bg-primary text-white border-primary shadow-micro'
-                    : 'bg-canvas-soft text-ink-muted border-hairline hover:text-ink'
+                    ? 'bg-[#0075de] text-white border-[#0075de] shadow-micro'
+                    : 'bg-white text-ink-secondary border-hairline hover:text-ink hover:bg-stone-50'
                 }`}
               >
                 {d}
@@ -210,7 +210,7 @@ export const ImportDataModal = ({
               value={form.csv_data}
               onChange={e => setForm({ ...form, csv_data: e.target.value })}
               placeholder="Paste comma-separated values (CSV) payload here..."
-              className="w-full px-3 py-2 text-xs font-mono text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-primary focus:bg-white transition-all shadow-micro"
+              className="w-full px-3 py-2 text-xs font-mono text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-[#0075de] focus:bg-white transition-all shadow-micro"
               required
             />
           </div>
@@ -226,13 +226,13 @@ export const ImportDataModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink bg-canvas-soft rounded-lg transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-ink-secondary bg-white hover:bg-stone-100 border border-hairline rounded-lg transition-colors shadow-micro cursor-pointer"
             >
               Close
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-active rounded-lg transition-all shadow-micro"
+              className="px-5 py-2 text-xs font-bold text-white bg-[#0075de] hover:bg-[#005bab] rounded-lg transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               Execute Import
             </button>
@@ -258,11 +258,11 @@ export const CreateGlobalVendorModal = ({
       <div className="bg-white border border-hairline rounded-2xl shadow-modal w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
         
         <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas-soft">
-          <div className="flex items-center gap-2 text-primary">
+          <div className="flex items-center gap-2 text-[#0075de]">
             <Building2 className="w-4 h-4" />
             <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Register Central Vendor</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-stone-200/60 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-stone-200/60 transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -277,7 +277,7 @@ export const CreateGlobalVendorModal = ({
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
               placeholder="e.g. Saffron Table Catering"
-              className="w-full px-3 py-2 text-xs text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-primary focus:bg-white shadow-micro"
+              className="w-full px-3 py-2 text-xs text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-[#0075de] focus:bg-white shadow-micro"
               required
             />
           </div>
@@ -289,7 +289,7 @@ export const CreateGlobalVendorModal = ({
             <select
               value={form.category}
               onChange={e => setForm({ ...form, category: e.target.value })}
-              className="w-full px-3 py-2 text-xs text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-primary focus:bg-white shadow-micro font-medium capitalize"
+              className="w-full px-3 py-2 text-xs text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-[#0075de] focus:bg-white shadow-micro font-medium capitalize cursor-pointer"
               required
             >
               <option value="catering">Catering</option>
@@ -310,7 +310,7 @@ export const CreateGlobalVendorModal = ({
               type="number"
               value={form.base_quote}
               onChange={e => setForm({ ...form, base_quote: e.target.value })}
-              className="w-full px-3 py-2 text-xs font-mono text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-primary focus:bg-white shadow-micro"
+              className="w-full px-3 py-2 text-xs font-mono text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-[#0075de] focus:bg-white shadow-micro"
               required
             />
           </div>
@@ -319,13 +319,13 @@ export const CreateGlobalVendorModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink bg-canvas-soft rounded-lg transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-ink-secondary bg-white hover:bg-stone-100 border border-hairline rounded-lg transition-colors shadow-micro cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-active rounded-lg transition-all shadow-micro"
+              className="px-5 py-2 text-xs font-bold text-white bg-[#0075de] hover:bg-[#005bab] rounded-lg transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               Create Vendor
             </button>
@@ -354,11 +354,11 @@ export const AssignGlobalVendorModal = ({
       <div className="bg-white border border-hairline rounded-2xl shadow-modal w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
         
         <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-canvas-soft">
-          <div className="flex items-center gap-2 text-primary">
+          <div className="flex items-center gap-2 text-[#0075de]">
             <Building2 className="w-4 h-4" />
             <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Assign Vendor to Event</h3>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-stone-200/60 transition-colors">
+          <button onClick={onClose} className="p-1 rounded-lg text-ink-muted hover:text-ink hover:bg-stone-200/60 transition-colors cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -382,7 +382,7 @@ export const AssignGlobalVendorModal = ({
             <select
               value={selectedEventId}
               onChange={e => setSelectedEventId(e.target.value)}
-              className="w-full px-3 py-2 text-xs text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-primary focus:bg-white shadow-micro font-medium"
+              className="w-full px-3 py-2 text-xs text-ink bg-canvas-soft border border-hairline rounded-lg focus:outline-none focus:border-[#0075de] focus:bg-white shadow-micro font-medium cursor-pointer"
               required
             >
               {events.map(evt => (
@@ -403,13 +403,13 @@ export const AssignGlobalVendorModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-ink-muted hover:text-ink bg-canvas-soft rounded-lg transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-ink-secondary bg-white hover:bg-stone-100 border border-hairline rounded-lg transition-colors shadow-micro cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-active rounded-lg transition-all shadow-micro"
+              className="px-5 py-2 text-xs font-bold text-white bg-[#0075de] hover:bg-[#005bab] rounded-lg transition-all shadow-micro hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               Confirm Assignment
             </button>

@@ -29,6 +29,16 @@ async function updateVendorQuote(eventId, vendorId, quote) {
         { $set: { quote } },
         { returnDocument: 'after' }
     );
+    // Automatically recalculate and update event budget_spent
+    const activeVendors = await db.collection('vendors').find({ 
+        event_id: eventId, 
+        status: { $nin: ['cancelled', 'rejected'] } 
+    }).toArray();
+    const totalSpent = activeVendors.reduce((sum, v) => sum + (v.quote || 0), 0);
+    await db.collection('events').updateOne(
+        { _id: eventId },
+        { $set: { budget_spent: totalSpent } }
+    );
     return result;
 }
 
